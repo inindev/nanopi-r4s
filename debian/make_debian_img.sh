@@ -27,6 +27,12 @@ main() {
     make_base_img $img_name $skip_mb $size_mb
     mount_img $img_name $skip_mb $mountpt
 
+    # dont write the cache to the image
+    mkdir -p 'cache/var/cache' 'cache/var/lib/apt/lists'
+    mkdir -p "$mountpt/var/cache" "$mountpt/var/lib/apt/lists"
+    mount -o bind 'cache/var/cache' "$mountpt/var/cache"
+    mount -o bind 'cache/var/lib/apt/lists' "$mountpt/var/lib/apt/lists"
+
     echo '\ninstalling root filesystem...'
     debootstrap --arch arm64 "$deb_dist" "$mountpt" 'https://deb.debian.org/debian/'
 
@@ -65,6 +71,8 @@ main() {
     umount "$mountpt/dev"
     umount "$mountpt/sys"
     umount "$mountpt/proc"
+    umount "$mountpt/var/cache"
+    umount "$mountpt/var/lib/apt/lists"
 
     rm -f "$mountpt/phase2_setup.sh"
     rm -f "$mountpt/initrd.img"
@@ -94,7 +102,7 @@ main() {
 
     echo '\ncompressed image is now ready'
     echo '\ncopy image to media:'
-    echo "  sudo sh -c 'xzcat $img_name.xz > /dev/sda'"
+    echo "  sudo sh -c 'xzcat $img_name.xz > /dev/sdX'"
     echo
 }
 
@@ -105,9 +113,8 @@ make_base_img() {
     local size_mb=$3
 
     # create empty image file
-    #dd bs=64K count=$(($size_mb << 4)) if=/dev/zero of="$filename"
     rm -f "$filename"
-    truncate -s ${size_mb}M "$filename"
+    dd bs=64K count=$(($size_mb << 4)) if=/dev/zero of="$filename"
 
     # partition with gpt
     local start_sec=$(($start_mb << 11))
@@ -163,7 +170,7 @@ download() {
     local url=$2
 
     if [ ! -d "$cache" ]; then
-        mkdir "$cache"
+        mkdir -p "$cache"
     fi
 
     local filename=$(basename "$url")
@@ -185,7 +192,7 @@ unpack_tar() {
     local dest=$3
 
     if [ ! -d "$dest" ]; then
-        mkdir "$dest"
+        mkdir -p "$dest"
     fi
 
     tar x${algo}vf "$filename" -C "$dest"
@@ -262,7 +269,6 @@ script_phase2_setup_sh() {
 	apt -y full-upgrade
 	apt -y install linux-image-arm64 linux-headers-arm64
 	apt -y install openssh-server sudo wget #u-boot-tools
-	apt clean
 
 	useradd -m debian -p \$(echo debian | openssl passwd -6 -stdin) -s /bin/bash
 	echo 'debian ALL=(ALL) NOPASSWD: ALL' > /etc/sudoers.d/debian
