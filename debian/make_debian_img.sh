@@ -245,6 +245,10 @@ file_locale_cfg() {
 
 file_network_interfaces() {
     cat <<-EOF
+	# loopback network interface
+	auto lo
+	iface lo inet loopback
+
 	# wan network interface
 	auto eth0
 	iface eth0 inet dhcp
