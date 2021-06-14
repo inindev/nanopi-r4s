@@ -89,6 +89,9 @@ main() {
     chown 1000:1000 "$mountpt/home/debian/expand_partition.sh"
     chmod 750 "$mountpt/home/debian/expand_partition.sh"
 
+    # reduce entropy in free space to enhance compression
+    cat /dev/zero > "$mountpt/tmp/zero.bin" 2> /dev/null || rm -f "$mountpt/tmp/zero.bin"
+
     umount "$mountpt"
     rm -rf "$mountpt"
 
@@ -102,7 +105,7 @@ main() {
 
     echo '\ncompressed image is now ready'
     echo '\ncopy image to media:'
-    echo "  sudo sh -c 'xzcat $img_name.xz > /dev/sdX'"
+    echo "  sudo sh -c 'xzcat $img_name.xz > /dev/sdX && sync'"
     echo
 }
 
