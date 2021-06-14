@@ -119,23 +119,14 @@ make_base_img() {
     # partition with gpt
     local start_sec=$(($start_mb << 11))
     local size_sec=$(($size_mb << 11))
-    local p1_size_sec=$(($size_sec - $start_sec - 33))
     cat <<-EOF | sfdisk "$filename"
 	label: gpt
 	unit: sectors
 	first-lba: 2048
 	last-lba: $(($size_sec - 34))
-	part1: start=$start_sec, size=$p1_size_sec, type=0FC63DAF-8483-4772-8E79-3D69D8477DE4
+	part1: start=$start_sec, size=$(($size_sec - $start_sec - 33)), type=0FC63DAF-8483-4772-8E79-3D69D8477DE4
 	EOF
 
-    # create ext4 filesystem
-    #local p1_blocks=$((($p1_size_sec / 8) * 4))
-    #rm -f "${filename}.p1"
-    #truncate -s ${p1_blocks}K "${filename}.p1"
-    #mkfs.ext4 "${filename}.p1"
-    #dd bs=4K if="${filename}.p1" of="${filename}" seek=$(($start_sec >> 3)) conv=notrunc
-    #rm -f "${filename}.p1"
-    #
     # create ext4 filesystem (requires super user)
     local lodev=$(losetup -f)
     losetup -P "$lodev" "$filename"
