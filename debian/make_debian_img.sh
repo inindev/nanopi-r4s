@@ -90,7 +90,9 @@ main() {
     chmod 750 "$mountpt/home/debian/expand_partition.sh"
 
     # reduce entropy in free space to enhance compression
-    cat /dev/zero > "$mountpt/tmp/zero.bin" 2> /dev/null || rm -f "$mountpt/tmp/zero.bin"
+    cat /dev/zero > "$mountpt/tmp/zero.bin" 2> /dev/null || true
+    sync
+    rm -f "$mountpt/tmp/zero.bin"
 
     umount "$mountpt"
     rm -rf "$mountpt"
