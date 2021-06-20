@@ -37,6 +37,7 @@ main() {
     debootstrap --arch arm64 "$deb_dist" "$mountpt" 'https://deb.debian.org/debian/'
 
     echo '\nconfiguring...'
+    echo 'link_in_boot = 1' > "$mountpt/etc/kernel-img.conf"
     echo "$(file_apt_sources $deb_dist)\n" > "$mountpt/etc/apt/sources.list"
     echo "$(file_locale_cfg)\n" > "$mountpt/etc/default/locale"
     echo "\n$(file_network_interfaces)\n" >> "$mountpt/etc/network/interfaces"
