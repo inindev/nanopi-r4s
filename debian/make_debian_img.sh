@@ -19,7 +19,7 @@ main() {
     check_installed 'wget' 'chroot' 'debootstrap' 'mkimage' 'pv'
 
     echo '\ndownloading files...'
-    local dtb=$(download 'cache' 'https://github.com/inindev/archlinuxarm/raw/release/rk3399-nanopi-r4s.dtb')
+    local dtb=$(download 'cache' 'https://github.com/inindev/nanopi-r4s/raw/release/dtb/rk3399-nanopi-r4s.dtb')
     local uboot=$(download 'cache' 'https://github.com/inindev/archlinuxarm/raw/release/uboot-nanopi-r4s-2021.04-1-aarch64.pkg.tar.xz')
     unpack_tar "$uboot" 'J' 'cache/work'
 
