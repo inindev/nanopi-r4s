@@ -59,6 +59,7 @@ main() {
     echo "$(script_mkscr_sh)\n" > "$mountpt/boot/mkscr.sh"
     chmod 754 "$mountpt/boot/mkscr.sh"
     install -m 644 'cache/rk3399-nanopi-r4s.dtb' "$mountpt/boot"
+    ln -s 'rk3399-nanopi-r4s.dtb' "$mountpt/boot/dtb"
 
     echo '\nphase 2 setup...'
     echo "$(script_phase2_setup_sh)\n" > "$mountpt/phase2_setup.sh"
@@ -80,10 +81,6 @@ main() {
     rm -f "$mountpt/initrd.img.old"
     rm -f "$mountpt/vmlinuz"
     rm -f "$mountpt/vmlinuz.old"
-
-    ln -s $(basename "$mountpt"/boot/initrd.img-*-arm64) "$mountpt/boot/initrd.img"
-    ln -s $(basename "$mountpt"/boot/vmlinuz-*-arm64) "$mountpt/boot/vmlinuz"
-    ln -s 'rk3399-nanopi-r4s.dtb' "$mountpt/boot/dtb"
 
     # script to expand rootfs partition
     echo "$(script_expand_partition_sh)\n" > "$mountpt/home/debian/expand_partition.sh"
