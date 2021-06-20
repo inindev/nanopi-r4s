@@ -268,7 +268,7 @@ script_phase2_setup_sh() {
 	apt update
 	apt -y full-upgrade
 	apt -y install linux-image-arm64 linux-headers-arm64
-	apt -y install openssh-server sudo wget #u-boot-tools
+	apt -y install openssh-server sudo wget unzip #u-boot-tools
 
 	useradd -m debian -p \$(echo debian | openssl passwd -6 -stdin) -s /bin/bash
 	echo 'debian ALL=(ALL) NOPASSWD: ALL' > /etc/sudoers.d/debian
