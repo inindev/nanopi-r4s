@@ -47,11 +47,11 @@ main() {
     sed -i "s/127.0.0.1\tlocalhost/127.0.0.1\tlocalhost\n127.0.1.1\tdeb-arm64/" "$mountpt/etc/hosts"
 
     # enable ll alias
-    sed -i "s/#alias ll='ls -l'/alias ll='ls -al'/" "$mountpt/etc/skel/.bashrc"
+    sed -i "s/#alias ll='ls -l'/alias ll='ls -l'/" "$mountpt/etc/skel/.bashrc"
     sed -i "s/# export LS_OPTIONS='--color=auto'/export LS_OPTIONS='--color=auto'/" "$mountpt/root/.bashrc"
     sed -i "s/# eval \"\`dircolors\`\"/eval \"\`dircolors\`\"/" "$mountpt/root/.bashrc"
     sed -i "s/# alias ls='ls \$LS_OPTIONS'/alias ls='ls \$LS_OPTIONS'/" "$mountpt/root/.bashrc"
-    sed -i "s/# alias ll='ls \$LS_OPTIONS -l'/alias ll='ls \$LS_OPTIONS -al'/" "$mountpt/root/.bashrc"
+    sed -i "s/# alias ll='ls \$LS_OPTIONS -l'/alias ll='ls \$LS_OPTIONS -l'/" "$mountpt/root/.bashrc"
 
     # boot files
     echo "$(script_boot_txt)\n" > "$mountpt/boot/boot.txt"
