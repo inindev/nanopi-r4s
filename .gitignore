@@ -1,3 +1,6 @@
 *._*
 .DS_Store
 dtb/linux-*
+dtb/*.dts
+dtb/*.dtsi
+dtb/*.dtb
