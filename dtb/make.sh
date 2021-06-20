@@ -24,7 +24,14 @@ if [ ! $(cat "$nanodts" | grep -q "$epgpios" ; echo $?) ]; then
     sed -i "s/^\&pcie0 {/&\n\t$epgpios/" "$nanodts"
 fi
 
-# build
-gcc -I "$linux/include" -E -nostdinc -undef -D__DTS__ -x assembler-with-cpp -o rk3399-nanopi-r4s-top.dts "$linux/arch/arm64/boot/dts/rockchip/rk3399-nanopi-r4s.dts"
-dtc -O dtb -o rk3399-nanopi-r4s.dtb rk3399-nanopi-r4s-top.dts
+if [ "$1" = 'links' ]; then
+    ln -s "$linux/arch/arm64/boot/dts/rockchip/rk3399-nanopi-r4s.dts"
+    ln -s "$linux/arch/arm64/boot/dts/rockchip/rk3399-nanopi4.dtsi"
+    ln -s "$linux/arch/arm64/boot/dts/rockchip/rk3399.dtsi"
+    ln -s "$linux/arch/arm64/boot/dts/rockchip/rk3399-opp.dtsi"
+else
+    # build
+    gcc -I "$linux/include" -E -nostdinc -undef -D__DTS__ -x assembler-with-cpp -o rk3399-nanopi-r4s-top.dts "$linux/arch/arm64/boot/dts/rockchip/rk3399-nanopi-r4s.dts"
+    dtc -O dtb -o rk3399-nanopi-r4s.dtb rk3399-nanopi-r4s-top.dts
+fi
 
