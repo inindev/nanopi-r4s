@@ -20,8 +20,8 @@ main() {
 
     echo '\ndownloading files...'
     local dtb=$(download 'cache' 'https://github.com/inindev/nanopi-r4s/raw/release/dtb/rk3399-nanopi-r4s.dtb')
-    local uboot=$(download 'cache' 'https://github.com/inindev/archlinuxarm/raw/release/uboot-nanopi-r4s-2021.04-1-aarch64.pkg.tar.xz')
-    unpack_tar "$uboot" 'J' 'cache/work'
+    local uboot_rksd=$(download 'cache' 'https://github.com/inindev/nanopi-r4s/raw/release/uboot/rksd_loader.img')
+    local uboot_itb=$(download 'cache' 'https://github.com/inindev/nanopi-r4s/raw/release/uboot/u-boot.itb')
 
     echo '\ncreating image file...'
     make_base_img $img_name $skip_mb $size_mb
@@ -58,8 +58,8 @@ main() {
     mkimage -A arm -O linux -T script -C none -n 'u-boot boot script' -d "$mountpt/boot/boot.txt" "$mountpt/boot/boot.scr"
     echo "$(script_mkscr_sh)\n" > "$mountpt/boot/mkscr.sh"
     chmod 754 "$mountpt/boot/mkscr.sh"
-    install -m 644 'cache/rk3399-nanopi-r4s.dtb' "$mountpt/boot"
-    ln -s 'rk3399-nanopi-r4s.dtb' "$mountpt/boot/dtb"
+    install -m 644 "$dtb" "$mountpt/boot"
+    ln -s $(basename "$dtb") "$mountpt/boot/dtb"
 
     echo '\nphase 2 setup...'
     echo "$(script_phase2_setup_sh)\n" > "$mountpt/phase2_setup.sh"
@@ -96,8 +96,8 @@ main() {
     rm -rf "$mountpt"
 
     echo '\ninstalling u-boot...'
-    dd if='cache/work/boot/rksd_loader.img' of="$img_name" seek=64 conv=notrunc
-    dd if='cache/work/boot/u-boot.itb' of="$img_name" seek=16384 conv=notrunc
+    dd if="$uboot_rksd" of="$img_name" seek=64 conv=notrunc
+    dd if="$uboot_itb" of="$img_name" seek=16384 conv=notrunc
 
     echo '\ncompressing image file...'
     pv "$img_name" | xz -z > "$img_name.xz"
@@ -178,18 +178,6 @@ download() {
     fi
 
     echo "$filepath"
-}
-
-unpack_tar() {
-    local filename=$1
-    local algo=$2
-    local dest=$3
-
-    if [ ! -d "$dest" ]; then
-        mkdir -p "$dest"
-    fi
-
-    tar x${algo}vf "$filename" -C "$dest"
 }
 
 # check if utility program is installed
