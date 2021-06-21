@@ -24,6 +24,19 @@ if [ ! $(cat "$nanodts" | grep -q "$epgpios" ; echo $?) ]; then
     sed -i "s/^\&pcie0 {/&\n\t$epgpios/" "$nanodts"
 fi
 
+# see https://patchwork.kernel.org/project/linux-rockchip/patch/20210607081727.4723-1-cnsztl@gmail.com
+if [ ! $(cat "$nanodts" | grep -q '&i2c2' ; echo $?) ]; then
+sed -i 's/\&i2c4 {/\&i2c2 {\
+	eeprom@51 {\
+		compatible = "microchip,24c02", "atmel,24c02";\
+		reg = <0x51>;\
+		pagesize = <16>;\
+		size = <256>;\
+		read-only;\
+	};\
+};\n\n&/' "$nanodts"
+fi
+
 if [ "$1" = 'links' ]; then
     ln -s "$linux/arch/arm64/boot/dts/rockchip/rk3399-nanopi-r4s.dts"
     ln -s "$linux/arch/arm64/boot/dts/rockchip/rk3399-nanopi4.dtsi"
