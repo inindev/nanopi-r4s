@@ -1,0 +1,18 @@
+[Unit]
+Description=run first-boot configuration scripts once
+DefaultDependencies=no
+Conflicts=shutdown.target
+After=local-fs-pre.target
+Before=local-fs.target sysinit.target shutdown.target
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/bin/sh /home/debian/first_boot/scripts.sh
+ExecStart=/bin/systemctl disable first_boot.service
+ExecStart=/bin/rm -f /etc/systemd/system/first_boot.service
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=sysinit.target
