@@ -28,11 +28,6 @@ install_resize2fs_service() {
 }
 
 main() {
-    if [ "0" != "$(id -u)" ]; then
-        echo 'this script must be run as root'
-        exit 1
-    fi
-
     local spath='/etc/systemd/system/resize2fs.service'
     local rp=$(findmnt / -o source -n)
     local rpn=$(echo "$rp" | grep -o '[[:digit:]]*$')

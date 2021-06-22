@@ -2,11 +2,6 @@
 
 set -e
 
-if [ "0" != "$(id -u)" ]; then
-    echo 'this script must be run as root'
-    exit 1
-fi
-
 if [ ! -f /etc/systemd/network/10-name-lan0.link ]; then
     mac=$(hexdump -s250 -n6 -ve '5/1 "%02x:" 1/1 "%02x"' /sys/devices/platform/ff120000.i2c/i2c-2/2-0051/eeprom)
 
