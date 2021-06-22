@@ -62,13 +62,16 @@ main() {
     ln -s $(basename "$dtb") "$mountpt/boot/dtb"
 
     echo '\nphase 2 setup...'
-    echo "$(script_phase2_setup_sh)\n" > "$mountpt/phase2_setup.sh"
+    local p2s_dir="$mountpt/tmp/phase2_setup"
+    mkdir "$p2s_dir"
+    cp -r first_boot "$p2s_dir"
+    echo "$(script_phase2_setup_sh)\n" > "$p2s_dir/phase2_setup.sh"
 
     mount -t proc '/proc' "$mountpt/proc"
     mount -t sysfs '/sys' "$mountpt/sys"
     mount -o bind '/dev' "$mountpt/dev"
     mount -o bind '/dev/pts' "$mountpt/dev/pts"
-    chroot "$mountpt" '/bin/sh' '/phase2_setup.sh'
+    chroot "$mountpt" '/bin/sh' '/tmp/phase2_setup/phase2_setup.sh'
     umount "$mountpt/dev/pts"
     umount "$mountpt/dev"
     umount "$mountpt/sys"
@@ -76,16 +79,7 @@ main() {
     umount "$mountpt/var/cache"
     umount "$mountpt/var/lib/apt/lists"
 
-    rm -f "$mountpt/phase2_setup.sh"
-    rm -f "$mountpt/initrd.img"
-    rm -f "$mountpt/initrd.img.old"
-    rm -f "$mountpt/vmlinuz"
-    rm -f "$mountpt/vmlinuz.old"
-
-    # script to expand rootfs partition
-    echo "$(script_expand_partition_sh)\n" > "$mountpt/home/debian/expand_partition.sh"
-    chown 1000:1000 "$mountpt/home/debian/expand_partition.sh"
-    chmod 750 "$mountpt/home/debian/expand_partition.sh"
+    rm -rf "$p2s_dir"
 
     # reduce entropy in free space to enhance compression
     cat /dev/zero > "$mountpt/tmp/zero.bin" 2> /dev/null || true
@@ -235,15 +229,15 @@ file_network_interfaces() {
 	auto lo
 	iface lo inet loopback
 
-	# wan network interface
-	auto eth0
-	iface eth0 inet dhcp
-
 	# lan network interface
-	auto enp1s0
-	iface enp1s0 inet static
+	auto lan0
+	iface lan0 inet static
 	    address 192.168.1.1/24
 	    broadcast 192.168.1.255
+
+	# wan network interface
+	auto wan0
+	iface wan0 inet dhcp
 	EOF
 }
 
@@ -254,11 +248,15 @@ script_phase2_setup_sh() {
 	apt update
 	apt -y full-upgrade
 	apt -y install linux-image-arm64 linux-headers-arm64
-	apt -y install openssh-server sudo wget unzip #u-boot-tools
+	apt -y install openssh-server sudo wget unzip u-boot-tools
 
 	useradd -m debian -p \$(echo debian | openssl passwd -6 -stdin) -s /bin/bash
 	echo 'debian ALL=(ALL) NOPASSWD: ALL' > /etc/sudoers.d/debian
 	chmod 600 /etc/sudoers.d/debian
+
+	mv /tmp/phase2_setup/first_boot/first_boot.service /etc/systemd/system
+	mv /tmp/phase2_setup/first_boot /home/debian
+	systemctl enable first_boot.service
 
 	exit
 	EOF
@@ -301,62 +299,6 @@ script_mkscr_sh() {
 
 	mkimage -A arm -O linux -T script -C none -n 'u-boot boot script' -d boot.txt boot.scr
 	EOF
-}
-
-script_expand_partition_sh() {
-cat << EOF2
-#!/bin/sh
-
-set -e
-
-install_resize2fs_service() {
-    local spath=\$1
-    local rp=\$2
-    cat <<-EOF > \$spath
-	[Unit]
-	Description=resize the root filesystem to fill partition
-	DefaultDependencies=no
-	Conflicts=shutdown.target
-	After=local-fs-pre.target
-	Before=local-fs.target sysinit.target shutdown.target
-	[Service]
-	Type=oneshot
-	RemainAfterExit=yes
-	ExecStart=resize2fs \$rp
-	ExecStart=systemctl disable resize2fs.service
-	ExecStart=rm -f \$spath
-	StandardOutput=journal
-	StandardError=journal
-	[Install]
-	WantedBy=sysinit.target
-	EOF
-}
-
-main() {
-    if [ "0" != "\$(id -u)" ]; then
-        echo 'this script must be run as root'
-        exit 1
-    fi
-
-    local spath='/etc/systemd/system/resize2fs.service'
-    local rp=\$(findmnt / -o source -n)
-    local rpn=\$(echo "\$rp" | grep -o '[[:digit:]]*\$')
-    local rd="/dev/\$(lsblk -no pkname \$rp)"
-
-    install_resize2fs_service \$spath \$rp
-    systemctl enable resize2fs.service
-
-    echo ', +' | sudo sfdisk -f -N \$rpn \$rd
-
-    local val
-    echo '\\\\n\\\\nThe root filesystem will be resized after next boot.'
-    read -p 'Would you like to reboot now? [Y/n] ' val
-    case \$val in
-        [Yy]*|'' ) reboot; break;;
-    esac
-}
-main
-EOF2
 }
 
 
