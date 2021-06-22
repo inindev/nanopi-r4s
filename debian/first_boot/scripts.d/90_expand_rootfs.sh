@@ -12,14 +12,16 @@ install_resize2fs_service() {
 	Conflicts=shutdown.target
 	After=local-fs-pre.target
 	Before=local-fs.target sysinit.target shutdown.target
+
 	[Service]
 	Type=oneshot
 	RemainAfterExit=yes
-	ExecStart=resize2fs $rp
-	ExecStart=systemctl disable resize2fs.service
-	ExecStart=rm -f $spath
+	ExecStart=/sbin/resize2fs $rp
+	ExecStart=/bin/systemctl disable resize2fs.service
+	ExecStart=/bin/rm -f $spath
 	StandardOutput=journal
 	StandardError=journal
+
 	[Install]
 	WantedBy=sysinit.target
 	EOF
@@ -39,9 +41,7 @@ main() {
     install_resize2fs_service $spath $rp
     systemctl enable resize2fs.service
 
-    echo ', +' | sudo sfdisk -f -N $rpn $rd
-
-    reboot
+    echo ', +' | /sbin/sfdisk -f -N $rpn $rd
 }
 main
 
