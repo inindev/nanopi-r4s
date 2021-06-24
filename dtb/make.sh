@@ -19,13 +19,13 @@ fi
 
 nanodts="$linux/arch/arm64/boot/dts/rockchip/rk3399-nanopi-r4s.dts"
 epgpios='ep-gpios = <\&gpio2 RK_PA4 GPIO_ACTIVE_HIGH>;'
-if [ ! $(cat "$nanodts" | grep -q "$epgpios" ; echo $?) ]; then
+if ! cat "$nanodts" | grep -q "$epgpios"; then
     cp "$nanodts" "$nanodts.ori"
     sed -i "s/^\&pcie0 {/&\n\t$epgpios/" "$nanodts"
 fi
 
 # see https://patchwork.kernel.org/project/linux-rockchip/patch/20210607081727.4723-1-cnsztl@gmail.com
-if [ ! $(cat "$nanodts" | grep -q '&i2c2' ; echo $?) ]; then
+if ! cat "$nanodts" | grep -q '&i2c2'; then
 sed -i 's/\&i2c4 {/\&i2c2 {\
 	eeprom@51 {\
 		compatible = "microchip,24c02", "atmel,24c02";\
