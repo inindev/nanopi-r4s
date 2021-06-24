@@ -6,3 +6,4 @@ dtb/linux-*
 dtb/*.dts
 dtb/*.dtsi
 dtb/*.dtb
+uboot/u-boot
