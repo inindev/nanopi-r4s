@@ -1,0 +1,37 @@
+From 506130f98774bd6c43c7f518240cedf25fd5912c Mon Sep 17 00:00:00 2001
+From: John Clark <inindev@gmail.com>
+Date: Thu, 24 Jun 2021 10:38:37 +0000
+Subject: [PATCH 2/2] arm64: rk3399: make mmc1 default
+
+---
+ configs/nanopi-r4s-rk3399_defconfig | 1 +
+ include/configs/rockchip-common.h   | 1 -
+ 2 files changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/configs/nanopi-r4s-rk3399_defconfig b/configs/nanopi-r4s-rk3399_defconfig
+index 1713775e76..9f0bf6ccea 100644
+--- a/configs/nanopi-r4s-rk3399_defconfig
++++ b/configs/nanopi-r4s-rk3399_defconfig
+@@ -25,6 +25,7 @@ CONFIG_DEFAULT_DEVICE_TREE="rk3399-nanopi-r4s"
+ CONFIG_OF_SPL_REMOVE_PROPS="pinctrl-0 pinctrl-names clock-names interrupt-parent assigned-clocks assigned-clock-rates assigned-clock-parents"
+ CONFIG_ENV_IS_IN_MMC=y
+ CONFIG_SYS_RELOC_GD_ENV_ADDR=y
++CONFIG_SYS_MMC_ENV_DEV=1
+ CONFIG_ROCKCHIP_GPIO=y
+ CONFIG_SYS_I2C_ROCKCHIP=y
+ CONFIG_MMC_DW=y
+diff --git a/include/configs/rockchip-common.h b/include/configs/rockchip-common.h
+index 0b9e24d1db..6121c0f936 100644
+--- a/include/configs/rockchip-common.h
++++ b/include/configs/rockchip-common.h
+@@ -17,7 +17,6 @@
+ /* First try to boot from SD (index 0), then eMMC (index 1) */
+ #if CONFIG_IS_ENABLED(CMD_MMC)
+ 	#define BOOT_TARGET_MMC(func) \
+-		func(MMC, mmc, 0) \
+ 		func(MMC, mmc, 1)
+ #else
+ 	#define BOOT_TARGET_MMC(func)
+-- 
+2.20.1
+

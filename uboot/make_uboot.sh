@@ -11,23 +11,12 @@ fi
 if ! git -C u-boot branch | grep -q uboot-2021.04; then
     git -C u-boot checkout -b uboot-2021.04 v2021.04
     git -C u-boot cherry-pick b69b9f3f54732c303939eb748aad97cd4cf60168
-
-    # remove video support
-    sed -i \
-      -e '/^CONFIG_DM_VIDEO=y$/d' \
-      -e '/^CONFIG_DISPLAY=y$/d' \
-      -e '/^CONFIG_VIDEO_ROCKCHIP=y$/d' \
-      -e '/^CONFIG_DISPLAY_ROCKCHIP_HDMI=y$/d' \
-      u-boot/configs/nanopi-r4s-rk3399_defconfig
-
-    # set default mmc to 1
-    sed -i 's/^CONFIG_ROCKCHIP_GPIO=y$/CONFIG_SYS_MMC_ENV_DEV=1\n&/' u-boot/configs/nanopi-r4s-rk3399_defconfig
-
-    # remove mmc0 from boot scan
-    sed -i '/func(MMC, mmc, 0)/d' u-boot/include/configs/rockchip-common.h
-
-    # optionally, take out mmc altogether for usb0 boot
-    #sed -i '/#define BOOT_TARGET_MMC(func) \\/,+2 d' u-boot/include/configs/rockchip-common.h
+    git -C u-boot am ../patches/0001-remove-video-support.patch
+    git -C u-boot am ../patches/0002-make-mmc1-default.patch
+    # optional boot from usb
+    #git -C u-boot am ../patches/0003-optional-boot-from-usb.patch
+elif [ "uboot-2021.04" != "$(git -C u-boot branch | sed -n -e 's/^\* \(.*\)/\1/p')" ]; then
+    git -C u-boot checkout uboot-2021.04
 fi
 
 if [ ! -f u-boot/rk3399_bl31.elf ]; then
