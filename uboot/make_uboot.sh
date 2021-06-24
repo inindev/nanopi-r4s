@@ -20,6 +20,9 @@ main() {
 
         # set default mmc to 1
         sed -i 's/^CONFIG_ROCKCHIP_GPIO=y$/CONFIG_SYS_MMC_ENV_DEV=1\n&/' u-boot/configs/nanopi-r4s-rk3399_defconfig
+
+        # remove mmc0 from boot scan
+        sed -i '/func(MMC, mmc, 0)/d' u-boot/include/configs/rockchip-common.h
     fi
 
     if [ ! -f u-boot/rk3399_bl31.elf ]; then
