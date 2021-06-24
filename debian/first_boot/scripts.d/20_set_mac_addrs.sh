@@ -32,7 +32,7 @@ if [ ! -f /etc/systemd/network/10-name-wan0.link ]; then
     unset mac
 fi
 
-if [ $(cat /boot/boot.txt | grep -q 'setenv macaddr da 19 c8 7a 6d f4' ; echo $?) ]; then
+if cat /boot/boot.txt | grep -q 'setenv macaddr da 19 c8 7a 6d f4'; then
     macstr=$(hexdump -s250 -n6 -ve '6/1 "%02x"' /sys/devices/platform/ff120000.i2c/i2c-2/2-0051/eeprom)
     mac=$(printf "%012x" $((0x$macstr+1)) | sed 's/../& /g;s/ $//')
 
