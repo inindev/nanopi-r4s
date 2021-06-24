@@ -256,6 +256,7 @@ script_phase2_setup_sh() {
 
 	mv /tmp/phase2_setup/first_boot/first_boot.service /etc/systemd/system
 	mv /tmp/phase2_setup/first_boot /home/debian
+        sed -i "s/1624888888/$(date +%s)/" /etc/systemd/system/first_boot.service
 	systemctl enable first_boot.service
 
 	exit

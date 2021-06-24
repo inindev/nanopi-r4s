@@ -8,6 +8,7 @@ Before=local-fs.target sysinit.target shutdown.target
 [Service]
 Type=oneshot
 RemainAfterExit=yes
+ExecStart=/bin/date --set=@1624888888
 ExecStart=/bin/sh /home/debian/first_boot/scripts.sh
 ExecStart=/bin/systemctl disable first_boot.service
 ExecStart=/bin/rm -f /etc/systemd/system/first_boot.service
