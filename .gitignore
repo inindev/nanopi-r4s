@@ -7,3 +7,5 @@ dtb/*.dts
 dtb/*.dtsi
 dtb/*.dtb
 uboot/u-boot
+uboot/rksd_loader.img
+uboot/u-boot.itb
