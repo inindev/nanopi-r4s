@@ -267,9 +267,6 @@ script_boot_txt() {
     cat <<-EOF
 	# after modifying, run ./mkscr.sh
 
-	# mac address (use spaces instead of colons)
-	setenv macaddr da 19 c8 7a 6d f4
-
 	part uuid \${devtype} \${devnum}:\${bootpart} uuid
 	setenv bootargs console=ttyS2,1500000 root=PARTUUID=\${uuid} rw rootwait earlycon=uart8250,mmio32,0xff1a0000
 
@@ -277,7 +274,6 @@ script_boot_txt() {
 	    if load \${devtype} \${devnum}:\${bootpart} \${fdt_addr_r} /boot/dtb; then
 	        fdt addr \${fdt_addr_r}
 	        fdt resize
-	        fdt set /ethernet@fe300000 local-mac-address "[\${macaddr}]"
 	        if load \${devtype} \${devnum}:\${bootpart} \${ramdisk_addr_r} /boot/initrd.img; then
 	            booti \${kernel_addr_r} \${ramdisk_addr_r}:\${filesize} \${fdt_addr_r};
 	        else
