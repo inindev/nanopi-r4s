@@ -1,7 +1,7 @@
 From 506130f98774bd6c43c7f518240cedf25fd5912c Mon Sep 17 00:00:00 2001
 From: John Clark <inindev@gmail.com>
 Date: Thu, 24 Jun 2021 10:38:37 +0000
-Subject: [PATCH 2/2] arm64: rk3399: make mmc1 default
+Subject: [PATCH 2/3] arm64: rk3399: make mmc1 default
 
 ---
  configs/nanopi-r4s-rk3399_defconfig | 1 +
