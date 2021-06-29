@@ -12,7 +12,7 @@ set -e
 main() {
     local size_mb=2048
     local skip_mb=16
-    local img_name="mmc_${size_mb}mb.img"
+    local img_filename="mmc_${size_mb}mb.img"
     local mountpt='rootfs'
     local deb_dist='buster'
 
@@ -24,10 +24,16 @@ main() {
     local uboot_itb=$(download 'cache' 'https://github.com/inindev/nanopi-r4s/raw/release/uboot/u-boot.itb')
 
     echo '\ncreating image file...'
-    make_base_img $img_name $skip_mb $size_mb
-    mount_img $img_name $skip_mb $mountpt
+    make_image_file "$img_filename" "$size_mb"
+    local media="$img_filename"
+    # alternatively assign to mtd media
+    #local media=/dev/sdX
 
-    # dont write the cache to the image
+    format_media "$media" "$skip_mb"
+    local del_mountpt=$([ -d "$mountpt" ] && echo 0 || echo 1)
+    mount_media "$media" "$skip_mb" "$mountpt"
+
+    # do not write the cache to the image
     mkdir -p 'cache/var/cache' 'cache/var/lib/apt/lists'
     mkdir -p "$mountpt/var/cache" "$mountpt/var/lib/apt/lists"
     mount -o bind 'cache/var/cache' "$mountpt/var/cache"
@@ -87,36 +93,48 @@ main() {
     rm -f "$mountpt/tmp/zero.bin"
 
     umount "$mountpt"
-    rm -rf "$mountpt"
+    # only cleanup mount point if we made it
+    [ "0" = "$del_mountpt" ] && rm -rf "$mountpt"
 
     echo '\ninstalling u-boot...'
-    dd if="$uboot_rksd" of="$img_name" seek=64 conv=notrunc
-    dd if="$uboot_itb" of="$img_name" seek=16384 conv=notrunc
+    dd bs=4K seek=8 if="$uboot_rksd" of="$media" conv=notrunc
+    dd bs=4K seek=2048 if="$uboot_itb" of="$media" conv=notrunc
+    sync
 
-    echo '\ncompressing image file...'
-    pv "$img_name" | xz -z > "$img_name.xz"
-    rm -f "$img_name"
+    local ft=$(stat -c %t "$media" 2> /dev/null)
+    if [ "0" = "$ft" ]; then
+        echo '\ncompressing image file...'
+        pv "$media" | xz -z > "$media.xz"
+        rm -f "$media"
 
-    echo '\ncompressed image is now ready'
-    echo '\ncopy image to media:'
-    echo "  sudo sh -c 'xzcat $img_name.xz > /dev/sdX && sync'"
+        echo '\ncompressed image is now ready'
+        echo '\ncopy image to media:'
+        echo "  sudo sh -c 'xzcat $media.xz > /dev/sdX && sync'"
+    elif [ "8" = "$ft" ]; then
+        echo '\nmedia is now ready'
+    else
+        echo '\nan error occured creating image'
+    fi
     echo
 }
 
-# create image filesystem
-make_base_img() {
+make_image_file() {
     local filename=$1
-    local start_mb=$2
-    local size_mb=$3
+    local size_mb=$2
 
-    # create empty image file
     rm -f "$filename"
     dd bs=64K count=$(($size_mb << 4)) if=/dev/zero of="$filename"
+}
+
+# partition & create ext4 filesystem
+format_media() {
+    local media=$1
+    local start_mb=$2
 
     # partition with gpt
     local start_sec=$(($start_mb << 11))
     local size_sec=$(($size_mb << 11))
-    cat <<-EOF | sfdisk "$filename"
+    cat <<-EOF | sfdisk "$media"
 	label: gpt
 	unit: sectors
 	first-lba: 2048
@@ -125,15 +143,30 @@ make_base_img() {
 	EOF
 
     # create ext4 filesystem (requires super user)
-    local lodev=$(losetup -f)
-    losetup -P "$lodev" "$filename"
-    mkfs.ext4 "${lodev}p1"
-    losetup -d "$lodev"
+    local ft=$(stat -c %t "$media" 2> /dev/null)
+    case $ft in
+        0)
+            local lodev=$(losetup -f)
+            losetup -P "$lodev" "$media"
+            mkfs.ext4 "${lodev}p1"
+            losetup -d "$lodev"
+            sleep 2
+            ;;
+        8)
+            local mp=$([ -e "${media}1" ] && echo "${media}1" || [ -e "${media}p1" ] && echo "${media}p1")
+            mkfs.ext4 "$mp"
+            ;;
+        *)
+            echo "invalid media type: $ft"
+            ;;
+    esac
+
+    sync
 }
 
-# mount image filesystem
-mount_img() {
-    local filename=$1
+# mount filesystem
+mount_media() {
+    local media=$1
     local start_mb=$2
     local mountpoint=$3
 
@@ -141,11 +174,11 @@ mount_img() {
         if [ -d "$mountpoint/lost+found" ]; then
             umount "$mountpoint" 2> /dev/null | true
         fi
-        rm -rf "$mountpoint"
+    else
+        mkdir -p "$mountpoint"
     fi
 
-    mkdir "$mountpoint"
-    mount -n -o loop,offset=${start_mb}M "$filename" "$mountpoint"
+    mount -n -o loop,offset=${start_mb}M "$media" "$mountpoint"
     if [ ! -d "$mountpoint/lost+found" ]; then
         echo 'failed to mount the image file'
         exit 3
