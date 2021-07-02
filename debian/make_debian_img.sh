@@ -15,6 +15,8 @@ main() {
     local media='mmc_2g.img' # or block device '/dev/sdX'
     local mountpt='rootfs'
     local deb_dist='buster'
+    local acct_uid='debian'
+    local acct_pass='debian'
 
     check_installed 'wget' 'chroot' 'debootstrap' 'mkimage' 'pv'
 
@@ -79,7 +81,7 @@ main() {
         # expansion not needed for block media
         rm -f "$p2s_dir/first_boot/scripts.d/90_expand_rootfs.sh"
     fi
-    echo "$(script_phase2_setup_sh)\n" > "$p2s_dir/phase2_setup.sh"
+    echo "$(script_phase2_setup_sh $acct_uid $acct_pass)\n" > "$p2s_dir/phase2_setup.sh"
 
     mount -t proc '/proc' "$mountpt/proc"
     mount -t sysfs '/sys' "$mountpt/sys"
@@ -269,6 +271,9 @@ file_network_interfaces() {
 }
 
 script_phase2_setup_sh() {
+    local uid=${1-debian}
+    local pass=${2-debian}
+
     cat <<-EOF
 	#!/bin/sh
 
@@ -277,12 +282,12 @@ script_phase2_setup_sh() {
 	apt -y install linux-image-arm64 linux-headers-arm64
 	apt -y install openssh-server sudo wget unzip u-boot-tools
 
-	useradd -m debian -p \$(echo debian | openssl passwd -6 -stdin) -s /bin/bash
-	echo 'debian ALL=(ALL) NOPASSWD: ALL' > /etc/sudoers.d/debian
-	chmod 600 /etc/sudoers.d/debian
+	useradd -m $uid -p \$(echo $pass | openssl passwd -6 -stdin) -s /bin/bash
+	echo "$uid ALL=(ALL) NOPASSWD: ALL" > /etc/sudoers.d/$uid
+	chmod 600 /etc/sudoers.d/$uid
 
 	mv /tmp/phase2_setup/first_boot/first_boot.service /etc/systemd/system
-	mv /tmp/phase2_setup/first_boot /home/debian
+	mv /tmp/phase2_setup/first_boot /home/$uid
         sed -i "s/1624888888/$(date +%s)/" /etc/systemd/system/first_boot.service
 	systemctl enable first_boot.service
 
