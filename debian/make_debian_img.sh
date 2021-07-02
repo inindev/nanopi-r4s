@@ -15,6 +15,7 @@ main() {
     local media='mmc_2g.img' # or block device '/dev/sdX'
     local mountpt='rootfs'
     local deb_dist='buster'
+    local hostname='deb-arm64'
     local acct_uid='debian'
     local acct_pass='debian'
 
@@ -52,8 +53,8 @@ main() {
     echo "\n$(file_network_interfaces)\n" >> "$mountpt/etc/network/interfaces"
 
     # hostname
-    echo 'deb-arm64' > "$mountpt/etc/hostname"
-    sed -i "s/127.0.0.1\tlocalhost/127.0.0.1\tlocalhost\n127.0.1.1\tdeb-arm64/" "$mountpt/etc/hosts"
+    echo $hostname > "$mountpt/etc/hostname"
+    sed -i "s/127.0.0.1\tlocalhost/127.0.0.1\tlocalhost\n127.0.1.1\t$hostname/" "$mountpt/etc/hosts"
 
     # enable ll alias
     sed -i "s/#alias ll='ls -l'/alias ll='ls -l'/" "$mountpt/etc/skel/.bashrc"
