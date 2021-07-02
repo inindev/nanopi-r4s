@@ -10,9 +10,9 @@ set -e
 #
 
 main() {
-    local size_mb=2048
-    local skip_mb=16
-    local img_filename="mmc_${size_mb}mb.img"
+    # file media is sized with the number between 'mmc_' and '.img'
+    #   use 'm' for 1024^2 and 'g' for 1024^3
+    local media='mmc_2g.img' # or block device '/dev/sdX'
     local mountpt='rootfs'
     local deb_dist='buster'
 
@@ -23,15 +23,15 @@ main() {
     local uboot_rksd=$(download 'cache' 'https://github.com/inindev/nanopi-r4s/raw/release/uboot/rksd_loader.img')
     local uboot_itb=$(download 'cache' 'https://github.com/inindev/nanopi-r4s/raw/release/uboot/u-boot.itb')
 
-    echo '\ncreating image file...'
-    make_image_file "$img_filename" "$size_mb"
-    local media="$img_filename"
-    # alternatively assign to mtd media
-    #local media=/dev/sdX
+    if [ ! -b "$media" ]; then
+        echo '\ncreating image file...'
+        make_image_file "$media"
+    fi
 
-    format_media "$media" "$skip_mb"
+    format_media "$media"
+
     local del_mountpt=$([ -d "$mountpt" ] && echo 0 || echo 1)
-    mount_media "$media" "$skip_mb" "$mountpt"
+    mount_media "$media" "$mountpt"
 
     # do not write the cache to the image
     mkdir -p 'cache/var/cache' 'cache/var/lib/apt/lists'
@@ -71,6 +71,10 @@ main() {
     local p2s_dir="$mountpt/tmp/phase2_setup"
     mkdir "$p2s_dir"
     cp -r first_boot "$p2s_dir"
+    if [ -b "$media" ]; then
+        # expansion not needed for block media
+        rm -f "$p2s_dir/first_boot/scripts.d/90_expand_rootfs.sh"
+    fi
     echo "$(script_phase2_setup_sh)\n" > "$p2s_dir/phase2_setup.sh"
 
     mount -t proc '/proc' "$mountpt/proc"
@@ -87,10 +91,12 @@ main() {
 
     rm -rf "$p2s_dir"
 
-    # reduce entropy in free space to enhance compression
-    cat /dev/zero > "$mountpt/tmp/zero.bin" 2> /dev/null || true
-    sync
-    rm -f "$mountpt/tmp/zero.bin"
+    if [ ! -b "$media" ]; then
+        # reduce entropy in free space to enhance compression
+        cat /dev/zero > "$mountpt/tmp/zero.bin" 2> /dev/null || true
+        sync
+        rm -f "$mountpt/tmp/zero.bin"
+    fi
 
     umount "$mountpt"
     # only cleanup mount point if we made it
@@ -101,8 +107,9 @@ main() {
     dd bs=4K seek=2048 if="$uboot_itb" of="$media" conv=notrunc
     sync
 
-    local ft=$(stat -c %t "$media" 2> /dev/null)
-    if [ "0" = "$ft" ]; then
+    if [ -b "$media" ]; then
+        echo '\nmedia is now ready'
+    else
         echo '\ncompressing image file...'
         pv "$media" | xz -z > "$media.xz"
         rm -f "$media"
@@ -110,65 +117,48 @@ main() {
         echo '\ncompressed image is now ready'
         echo '\ncopy image to media:'
         echo "  sudo sh -c 'xzcat $media.xz > /dev/sdX && sync'"
-    elif [ "8" = "$ft" ]; then
-        echo '\nmedia is now ready'
-    else
-        echo '\nan error occured creating image'
     fi
     echo
 }
 
 make_image_file() {
     local filename=$1
-    local size_mb=$2
-
     rm -f "$filename"
-    dd bs=64K count=$(($size_mb << 4)) if=/dev/zero of="$filename"
+    local size="$(echo "$filename" | sed -rn 's/.*mmc_([[:digit:]]+[m|g])\.img$/\1/p' | sed -e 's/g/ << 14/' -e 's/m/ << 4/')"
+    dd bs=64K count=$(($size)) if=/dev/zero of="$filename"
 }
 
 # partition & create ext4 filesystem
 format_media() {
     local media=$1
-    local start_mb=$2
 
     # partition with gpt
-    local start_sec=$(($start_mb << 11))
-    local size_sec=$(($size_mb << 11))
     cat <<-EOF | sfdisk "$media"
 	label: gpt
 	unit: sectors
 	first-lba: 2048
-	last-lba: $(($size_sec - 34))
-	part1: start=$start_sec, size=$(($size_sec - $start_sec - 33)), type=0FC63DAF-8483-4772-8E79-3D69D8477DE4
+	part1: start=32768, type=0FC63DAF-8483-4772-8E79-3D69D8477DE4
 	EOF
 
-    # create ext4 filesystem (requires super user)
-    local ft=$(stat -c %t "$media" 2> /dev/null)
-    case $ft in
-        0)
-            local lodev=$(losetup -f)
-            losetup -P "$lodev" "$media"
-            mkfs.ext4 "${lodev}p1"
-            losetup -d "$lodev"
-            sleep 2
-            ;;
-        8)
-            local mp=$([ -e "${media}1" ] && echo "${media}1" || [ -e "${media}p1" ] && echo "${media}p1")
-            mkfs.ext4 "$mp"
-            ;;
-        *)
-            echo "invalid media type: $ft"
-            ;;
-    esac
-
-    sync
+    # create ext4 filesystem
+    if [ -b "$media" ]; then
+        local part1=$([ -b "${media}1" ] && echo "${media}1" || echo "${media}p1")
+        mkfs.ext4 "$part1"
+        sync
+    else
+        local lodev=$(losetup -f)
+        losetup -P "$lodev" "$media"
+        mkfs.ext4 "${lodev}p1"
+        sync
+        losetup -d "$lodev"
+        sleep 2
+    fi
 }
 
 # mount filesystem
 mount_media() {
     local media=$1
-    local start_mb=$2
-    local mountpoint=$3
+    local mountpoint=$2
 
     if [ -d "$mountpoint" ]; then
         if [ -d "$mountpoint/lost+found" ]; then
@@ -178,7 +168,7 @@ mount_media() {
         mkdir -p "$mountpoint"
     fi
 
-    mount -n -o loop,offset=${start_mb}M "$media" "$mountpoint"
+    mount -n -o loop,offset=16M "$media" "$mountpoint"
     if [ ! -d "$mountpoint/lost+found" ]; then
         echo 'failed to mount the image file'
         exit 3
