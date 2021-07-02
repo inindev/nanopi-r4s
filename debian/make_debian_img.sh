@@ -19,6 +19,7 @@ main() {
     check_installed 'wget' 'chroot' 'debootstrap' 'mkimage' 'pv'
 
     echo '\ndownloading files...'
+    local rtfw=$(download 'cache' 'http://ftp.debian.org/debian/pool/non-free/f/firmware-nonfree/firmware-realtek_20190114-2_all.deb')
     local dtb=$(download 'cache' 'https://github.com/inindev/nanopi-r4s/raw/release/dtb/rk3399-nanopi-r4s.dtb')
     local uboot_rksd=$(download 'cache' 'https://github.com/inindev/nanopi-r4s/raw/release/uboot/rksd_loader.img')
     local uboot_itb=$(download 'cache' 'https://github.com/inindev/nanopi-r4s/raw/release/uboot/u-boot.itb')
@@ -59,7 +60,7 @@ main() {
     sed -i "s/# alias ls='ls \$LS_OPTIONS'/alias ls='ls \$LS_OPTIONS'/" "$mountpt/root/.bashrc"
     sed -i "s/# alias ll='ls \$LS_OPTIONS -l'/alias ll='ls \$LS_OPTIONS -l'/" "$mountpt/root/.bashrc"
 
-    # boot files
+    echo '\nconfiguring boot files...'
     echo "$(script_boot_txt)\n" > "$mountpt/boot/boot.txt"
     mkimage -A arm -O linux -T script -C none -n 'u-boot boot script' -d "$mountpt/boot/boot.txt" "$mountpt/boot/boot.scr"
     echo "$(script_mkscr_sh)\n" > "$mountpt/boot/mkscr.sh"
@@ -67,7 +68,10 @@ main() {
     install -m 644 "$dtb" "$mountpt/boot"
     ln -s $(basename "$dtb") "$mountpt/boot/dtb"
 
-    echo '\nphase 2 setup...'
+    echo '\ninstalling realtek firmware...'
+    ar p "$rtfw" data.tar.xz | tar -C "$mountpt" -xJvf - ./lib/firmware/rtl_nic
+
+    echo '\nphase 2: chroot setup...'
     local p2s_dir="$mountpt/tmp/phase2_setup"
     mkdir "$p2s_dir"
     cp -r first_boot "$p2s_dir"
@@ -100,7 +104,7 @@ main() {
 
     umount "$mountpt"
     # only cleanup mount point if we made it
-    [ "0" = "$del_mountpt" ] && rm -rf "$mountpt"
+    [ "0" != "$del_mountpt" ] && rm -rf "$mountpt"
 
     echo '\ninstalling u-boot...'
     dd bs=4K seek=8 if="$uboot_rksd" of="$media" conv=notrunc
