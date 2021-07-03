@@ -18,6 +18,7 @@ main() {
     local hostname='deb-arm64'
     local acct_uid='debian'
     local acct_pass='debian'
+    local disable_ipv6='true'
 
     check_installed 'wget' 'chroot' 'debootstrap' 'mkimage' 'pv'
 
@@ -64,7 +65,7 @@ main() {
     sed -i "s/# alias ll='ls \$LS_OPTIONS -l'/alias ll='ls \$LS_OPTIONS -l'/" "$mountpt/root/.bashrc"
 
     echo '\nconfiguring boot files...'
-    echo "$(script_boot_txt)\n" > "$mountpt/boot/boot.txt"
+    echo "$(script_boot_txt $disable_ipv6)\n" > "$mountpt/boot/boot.txt"
     mkimage -A arm -O linux -T script -C none -n 'u-boot boot script' -d "$mountpt/boot/boot.txt" "$mountpt/boot/boot.scr"
     echo "$(script_mkscr_sh)\n" > "$mountpt/boot/mkscr.sh"
     chmod 754 "$mountpt/boot/mkscr.sh"
@@ -219,6 +220,7 @@ check_installed() {
 
 file_apt_sources() {
     local deb_dist=$1
+
     cat <<-EOF
 	# For information about how to configure apt package sources,
 	# see the sources.list(5) manual.
@@ -298,11 +300,13 @@ script_phase2_setup_sh() {
 }
 
 script_boot_txt() {
+    local no_ipv6="$([ "$1" = "true" ] && echo ' ipv6.disable=1')"
+
     cat <<-EOF
 	# after modifying, run ./mkscr.sh
 
 	part uuid \${devtype} \${devnum}:\${bootpart} uuid
-	setenv bootargs console=ttyS2,1500000 root=PARTUUID=\${uuid} rw rootwait earlycon=uart8250,mmio32,0xff1a0000
+	setenv bootargs console=ttyS2,1500000 root=PARTUUID=\${uuid} rw rootwait$no_ipv6 earlycon=uart8250,mmio32,0xff1a0000
 
 	if load \${devtype} \${devnum}:\${bootpart} \${kernel_addr_r} /boot/vmlinuz; then
 	    if load \${devtype} \${devnum}:\${bootpart} \${fdt_addr_r} /boot/dtb; then
