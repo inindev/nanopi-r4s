@@ -146,20 +146,21 @@ format_media() {
 	first-lba: 2048
 	part1: start=32768, type=0FC63DAF-8483-4772-8E79-3D69D8477DE4
 	EOF
+    sync
 
     # create ext4 filesystem
     if [ -b "$media" ]; then
         local part1=$([ -b "${media}1" ] && echo "${media}1" || echo "${media}p1")
         mkfs.ext4 "$part1"
-        sync
     else
         local lodev=$(losetup -f)
         losetup -P "$lodev" "$media"
+        sync
         mkfs.ext4 "${lodev}p1"
         sync
         losetup -d "$lodev"
-        sleep 2
     fi
+    sync
 }
 
 # mount filesystem
