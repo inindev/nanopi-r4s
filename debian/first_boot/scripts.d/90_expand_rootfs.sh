@@ -40,6 +40,8 @@ main() {
     systemctl enable resize2fs.service
 
     echo ', +' | /sbin/sfdisk -f -N $rpn $rd
+
+    REBOOT=true
 }
 main
 

@@ -1,6 +1,6 @@
 #!/bin/sh
 
-cd /home/debian/first_boot
+cd /root/first_boot
 
 if [ -d scripts.d ]; then
     for s in scripts.d/*.sh; do

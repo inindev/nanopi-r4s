@@ -1,5 +1,6 @@
 #!/bin/sh
 
-rm -rf /home/debian/first_boot
-/sbin/reboot
+rm -rf ../../first_boot
+
+[ -n $REBOOT ] && /sbin/reboot
 
