@@ -14,8 +14,10 @@ if ! git -C u-boot branch | grep -q uboot-2021.04; then
     git -C u-boot am ../patches/0001-remove-video-support.patch
     git -C u-boot am ../patches/0002-make-mmc1-default.patch
     git -C u-boot am ../patches/0003-ethaddr-eth1addr-from-eeprom.patch
+    git -C u-boot am ../patches/0004-pcie_dw_rockchip-compilation-errors.patch
+    git -C u-boot am ../patches/0005-enable-usb-host.patch
     # optional boot from usb
-    #git -C u-boot am ../patches/0004-optional-boot-from-usb.patch
+    #git -C u-boot am ../patches/0006-optional-boot-from-usb.patch
 elif [ "uboot-2021.04" != "$(git -C u-boot branch | sed -n -e 's/^\* \(.*\)/\1/p')" ]; then
     git -C u-boot checkout uboot-2021.04
 fi
