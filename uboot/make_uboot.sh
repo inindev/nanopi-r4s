@@ -23,7 +23,7 @@ elif [ "uboot-2021.04" != "$(git -C u-boot branch | sed -n -e 's/^\* \(.*\)/\1/p
 fi
 
 if [ ! -f u-boot/rk3399_bl31.elf ]; then
-    wget -c https://github.com/atf-builds/atf/releases/download/v2.4/atf-v2.4.tar.gz -O - | tar -C u-boot -xz ./rk3399_bl31.elf
+    wget -cP u-boot https://github.com/atf-builds/atf/releases/download/v2.4/rk3399_bl31.elf
 fi
 
 make -C u-boot mrproper
