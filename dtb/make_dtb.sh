@@ -13,14 +13,20 @@ if [ ! -d "linux-$lv" ]; then
     tar xJvf "linux-$lv.tar.xz" "linux-$lv/include" "linux-$lv/arch/arm64/boot/dts/rockchip"
 fi
 
-# patchwork
-#wget -O rk3399-nanopi-r4s.patch https://patchwork.kernel.org/project/linux-rockchip/patch/20210610091357.6780-1-cnsztl@gmail.com/raw/
-#patch -b -p1 -d "linux-$lv" < rk3399-nanopi-r4s.patch
-
 nanodts="linux-$lv/arch/arm64/boot/dts/rockchip/rk3399-nanopi-r4s.dts"
+if [ ! -f "$nanodts.ori" ]; then
+    cp "$nanodts" "$nanodts.ori"
+fi
+
+if ! cat "$nanodts" | grep -q 'r8169-100:00:link'; then
+    sed -i 's/label = "green:lan";/&\n\t\t\tlinux,default-trigger = "r8169-100:00:link";/' "$nanodts"
+fi
+if ! cat "$nanodts" | grep -q 'stmmac-0:01:link'; then
+    sed -i 's/label = "green:wan";/&\n\t\t\tlinux,default-trigger = "stmmac-0:01:link";/' "$nanodts"
+fi
+
 epgpios='ep-gpios = <\&gpio2 RK_PA4 GPIO_ACTIVE_HIGH>;'
 if ! cat "$nanodts" | grep -q "$epgpios"; then
-    cp "$nanodts" "$nanodts.ori"
     sed -i "s/^\&pcie0 {/&\n\t$epgpios/" "$nanodts"
 fi
 
