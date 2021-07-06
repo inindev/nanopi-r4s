@@ -20,7 +20,7 @@ main() {
     local acct_pass='debian'
     local disable_ipv6='true'
 
-    check_installed 'wget' 'chroot' 'debootstrap' 'mkimage' 'pv'
+    check_installed 'debootstrap' 'u-boot-tools' 'pv' 'wget'
 
     echo '\ndownloading files...'
     local rtfw=$(download 'cache' 'http://ftp.debian.org/debian/pool/non-free/f/firmware-nonfree/firmware-realtek_20190114-2_all.deb')
@@ -208,14 +208,15 @@ download() {
 
 # check if utility program is installed
 check_installed() {
-    for item in "$@"
-        do
-        local filepath=$(which "$item")
-        if [ ! -x "$filepath" ]; then
-            echo "this script requires $item"
-            exit 1
-        fi
+    local todo
+    for item in "$@"; do
+        dpkg -l "$item" 2>\&1>/dev/null || todo="$todo $item"
     done
+
+    if [ ! -z "$todo" ]; then
+        echo "this script requires the following packages:\033[0;33m$todo\033[0m\n"
+        exit 1
+    fi
 }
 
 file_apt_sources() {
