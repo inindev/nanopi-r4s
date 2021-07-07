@@ -92,7 +92,6 @@ dhcp_interface_cfg() {
         res="$res$nic.$vlan"
     done
 
-    echo '\033[0;31m/etc/default/isc-dhcp-server\033[0m'
     echo "INTERFACESv4=\"$res\""
 }
 
@@ -108,6 +107,7 @@ main() {
     local range='16-254'
     local vlans='mgmt:64/24 main:80/23 guest:96/24 infra:112/24'
 
+    echo '\n\033[0;31m/etc/dhcp/dhcpd.conf\033[0m'
     cat <<- EOF
 	#
 	# dhcpd.conf - isc dhcpd configuration file
@@ -120,14 +120,14 @@ main() {
 	option domain-name-servers 1.0.0.1, 1.1.1.1;
 	#option domain-name-servers 8.8.4.4, 8.8.8.8;
 	option ntp-servers time.apple.com;
-
-
 	EOF
-
+    echo '\n'
     enum_vlan_cfg "$base" "$range" "$vlans"
 
-    echo
+    echo '\n\033[0;31m/etc/default/isc-dhcp-server\033[0m'
     dhcp_interface_cfg "$nic" "$vlans"
-    echo
+    echo '\n'
+
+
 }
 main
