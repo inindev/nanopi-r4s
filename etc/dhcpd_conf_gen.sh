@@ -79,6 +79,23 @@ enum_vlan_cfg() {
     done
 }
 
+dhcp_interface_cfg() {
+    local nic="$1"
+    local vlans="$2"
+
+    local res
+    set -- $vlans
+    for nvm in $@; do
+        local vm=${nvm#*:}
+        local vlan=${vm%/*}
+        [ -n "$res" ] && res="$res "
+        res="$res$nic.$vlan"
+    done
+
+    echo '\033[0;31m/etc/default/isc-dhcp-server\033[0m'
+    echo "INTERFACESv4=\"$res\""
+}
+
 
 #
 # exit codes
@@ -86,6 +103,7 @@ enum_vlan_cfg() {
 #   1: bad bitmask bit count
 #
 main() {
+    local nic='lan0'
     local base='192.168'
     local range='16-254'
     local vlans='mgmt:64/24 main:80/23 guest:96/24 infra:112/24'
@@ -107,5 +125,9 @@ main() {
 	EOF
 
     enum_vlan_cfg "$base" "$range" "$vlans"
+
+    echo
+    dhcp_interface_cfg "$nic" "$vlans"
+    echo
 }
 main
