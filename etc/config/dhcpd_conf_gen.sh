@@ -1,5 +1,7 @@
 #!/bin/sh
 
+set -e
+
 
 sub_mask() {
     local bits=$1
@@ -100,12 +102,16 @@ dhcp_interface_cfg() {
 # exit codes
 #   0: success
 #   1: bad bitmask bit count
+#   2: missing vlan.cfg
 #
 main() {
     local nic='lan0'
     local base='192.168'
     local range='16-254'
-    local vlans='mgmt:64/24 main:80/23 guest:96/24 infra:112/24'
+
+    local vlan_cfg="$(dirname "$0")/vlan.cfg"
+    local vlans="$(cat "$vlan_cfg" | tr '\n' ' ' )"
+    [ -z "$vlans" ] && exit 2
 
     echo '\n\033[0;31m/etc/dhcp/dhcpd.conf\033[0m'
     cat <<- EOF
