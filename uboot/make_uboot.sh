@@ -35,3 +35,9 @@ u-boot/tools/mkimage -n rk3399 -T rksd -d u-boot/tpl/u-boot-tpl.bin rksd_loader.
 cat u-boot/spl/u-boot-spl.bin >> rksd_loader.img
 cp u-boot/u-boot.itb .
 
+
+echo '\nu-boot and spl binaries are now ready'
+echo '\ncopy images to media:'
+echo '  dd bs=4K seek=8 if=rksd_loader.img of=/dev/sdX conv=notrunc'
+echo '  dd bs=4K seek=2048 if=u-boot.itb of=/dev/sdX conv=notrunc'
+echo '  sync\n'
