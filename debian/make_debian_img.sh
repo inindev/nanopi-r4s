@@ -35,7 +35,7 @@ main() {
 
     format_media "$media"
 
-    local del_mountpt=$([ -d "$mountpt" ] && echo 0 || echo 1)
+    local mountpt_del=$([ -d "$mountpt" ] && echo 'false')
     mount_media "$media" "$mountpt"
 
     # do not write the cache to the image
@@ -108,7 +108,7 @@ main() {
 
     umount "$mountpt"
     # only cleanup mount point if we made it
-    [ "0" != "$del_mountpt" ] && rm -rf "$mountpt"
+    [ -n "$mountpt_del" ] && rm -rf "$mountpt"
 
     echo '\ninstalling u-boot...'
     dd bs=4K seek=8 if="$uboot_rksd" of="$media" conv=notrunc
