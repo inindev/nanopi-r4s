@@ -151,7 +151,7 @@ format_media() {
 
     # create ext4 filesystem
     if [ -b "$media" ]; then
-        local part1=$([ -b "${media}1" ] && echo "${media}1" || echo "${media}p1")
+        local part1="/dev/$(lsblk -no kname "$media" | grep '.*1$')"
         mkfs.ext4 "$part1"
     else
         local lodev=$(losetup -f)
@@ -177,7 +177,13 @@ mount_media() {
         mkdir -p "$mountpoint"
     fi
 
-    mount -n -o loop,offset=16M "$media" "$mountpoint"
+    if [ -b "$media" ]; then
+        local part1="/dev/$(lsblk -no kname "$media" | grep '.*1$')"
+        mount -n "$part1" "$mountpoint"
+    else
+        mount -n -o loop,offset=16M "$media" "$mountpoint"
+    fi
+
     if [ ! -d "$mountpoint/lost+found" ]; then
         echo 'failed to mount the image file'
         exit 3
