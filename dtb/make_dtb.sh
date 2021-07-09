@@ -4,7 +4,7 @@ set -e
 
 # prerequisites: build-essential device-tree-compiler
 # kernel.org linux version
-lv='5.13'
+lv='5.13.1'
 
 if [ ! -d "linux-$lv" ]; then
     if [ ! -f "linux-$lv.tar.xz" ]; then
