@@ -23,7 +23,7 @@ main() {
     check_installed 'debootstrap' 'u-boot-tools' 'pv' 'wget'
 
     echo '\ndownloading files...'
-    local rtfw=$(download 'cache' 'http://ftp.debian.org/debian/pool/non-free/f/firmware-nonfree/firmware-realtek_20190114-2_all.deb')
+    local rtfw=$(download 'cache' 'https://mirrors.edge.kernel.org/pub/linux/kernel/firmware/linux-firmware-20210511.tar.xz')
     local dtb=$(download 'cache' 'https://github.com/inindev/nanopi-r4s/raw/release/dtb/rk3399-nanopi-r4s.dtb')
     local uboot_rksd=$(download 'cache' 'https://github.com/inindev/nanopi-r4s/raw/release/uboot/rksd_loader.img')
     local uboot_itb=$(download 'cache' 'https://github.com/inindev/nanopi-r4s/raw/release/uboot/u-boot.itb')
@@ -73,7 +73,9 @@ main() {
     ln -s $(basename "$dtb") "$mountpt/boot/dtb"
 
     echo '\ninstalling realtek firmware...'
-    ar p "$rtfw" data.tar.xz | tar -C "$mountpt" -xJvf - ./lib/firmware/rtl_nic
+    local rtfwn=$(basename "$rtfw")
+    mkdir -p "$mountpt/lib/firmware"
+    tar -C "$mountpt/lib/firmware" --strip-components=1 -xJvf "$rtfw" ${rtfwn%%.*}/rtl_nic
 
     echo '\nphase 2: chroot setup...'
     local p2s_dir="$mountpt/tmp/phase2_setup"
@@ -108,7 +110,7 @@ main() {
 
     umount "$mountpt"
     # only cleanup mount point if we made it
-    [ -n "$mountpt_del" ] && rm -rf "$mountpt"
+    [ -z "$mountpt_del" ] && rm -rf "$mountpt"
 
     echo '\ninstalling u-boot...'
     dd bs=4K seek=8 if="$uboot_rksd" of="$media" conv=notrunc
