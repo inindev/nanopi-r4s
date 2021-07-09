@@ -216,7 +216,7 @@ download() {
 check_installed() {
     local todo
     for item in "$@"; do
-        dpkg -l "$item" 2>\&1>/dev/null || todo="$todo $item"
+        dpkg -l "$item" >/dev/null 2>&1 || todo="$todo $item"
     done
 
     if [ ! -z "$todo" ]; then
