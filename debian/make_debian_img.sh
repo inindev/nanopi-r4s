@@ -14,7 +14,7 @@ main() {
     #   use 'm' for 1024^2 and 'g' for 1024^3
     local media='mmc_2g.img' # or block device '/dev/sdX'
     local mountpt='rootfs'
-    local deb_dist='buster'
+    local deb_dist='bullseye'
     local hostname='deb-arm64'
     local acct_uid='debian'
     local acct_pass='debian'
@@ -22,20 +22,19 @@ main() {
 
     check_installed 'debootstrap' 'u-boot-tools' 'pv' 'wget'
 
-    echo '\ndownloading files...'
+    echo '\n\033[0;36mdownloading files...\033[0m'
     local rtfw=$(download 'cache' 'https://mirrors.edge.kernel.org/pub/linux/kernel/firmware/linux-firmware-20210511.tar.xz')
     local dtb=$(download 'cache' 'https://github.com/inindev/nanopi-r4s/raw/release/dtb/rk3399-nanopi-r4s.dtb')
     local uboot_rksd=$(download 'cache' 'https://github.com/inindev/nanopi-r4s/raw/release/uboot/rksd_loader.img')
     local uboot_itb=$(download 'cache' 'https://github.com/inindev/nanopi-r4s/raw/release/uboot/u-boot.itb')
 
     if [ ! -b "$media" ]; then
-        echo '\ncreating image file...'
+        echo '\n\033[0;36mcreating image file...\033[0m'
         make_image_file "$media"
     fi
 
+    echo '\033[0;36m\nformatting media...\033[0m'
     format_media "$media"
-
-    local mountpt_del=$([ -d "$mountpt" ] && echo 'false')
     mount_media "$media" "$mountpt"
 
     # do not write the cache to the image
@@ -44,14 +43,13 @@ main() {
     mount -o bind 'cache/var/cache' "$mountpt/var/cache"
     mount -o bind 'cache/var/lib/apt/lists' "$mountpt/var/lib/apt/lists"
 
-    echo '\ninstalling root filesystem...'
+    echo '\033[0;36minstalling root filesystem...\033[0m'
     debootstrap --arch arm64 "$deb_dist" "$mountpt" 'https://deb.debian.org/debian/'
 
-    echo '\nconfiguring...'
+    echo '\n\033[0;36mconfiguring...\033[0m'
     echo 'link_in_boot = 1' > "$mountpt/etc/kernel-img.conf"
     echo "$(file_apt_sources $deb_dist)\n" > "$mountpt/etc/apt/sources.list"
     echo "$(file_locale_cfg)\n" > "$mountpt/etc/default/locale"
-    echo "\n$(file_network_interfaces)\n" >> "$mountpt/etc/network/interfaces"
 
     # hostname
     echo $hostname > "$mountpt/etc/hostname"
@@ -64,7 +62,7 @@ main() {
     sed -i "s/# alias ls='ls \$LS_OPTIONS'/alias ls='ls \$LS_OPTIONS'/" "$mountpt/root/.bashrc"
     sed -i "s/# alias ll='ls \$LS_OPTIONS -l'/alias ll='ls \$LS_OPTIONS -l'/" "$mountpt/root/.bashrc"
 
-    echo '\nconfiguring boot files...'
+    echo '\n\033[0;36mconfiguring boot files...\033[0m'
     echo "$(script_boot_txt $disable_ipv6)\n" > "$mountpt/boot/boot.txt"
     mkimage -A arm -O linux -T script -C none -n 'u-boot boot script' -d "$mountpt/boot/boot.txt" "$mountpt/boot/boot.scr"
     echo "$(script_mkscr_sh)\n" > "$mountpt/boot/mkscr.sh"
@@ -72,18 +70,18 @@ main() {
     install -m 644 "$dtb" "$mountpt/boot"
     ln -s $(basename "$dtb") "$mountpt/boot/dtb"
 
-    echo '\ninstalling realtek firmware...'
+    echo '\n\033[0;36minstalling realtek firmware...\033[0m'
     local rtfwn=$(basename "$rtfw")
     mkdir -p "$mountpt/lib/firmware"
     tar -C "$mountpt/lib/firmware" --strip-components=1 -xJvf "$rtfw" ${rtfwn%%.*}/rtl_nic
 
-    echo '\nphase 2: chroot setup...'
+    echo '\n\033[0;36mphase 2: chroot setup...\033[0m'
     local p2s_dir="$mountpt/tmp/phase2_setup"
     mkdir "$p2s_dir"
     cp -r first_boot "$p2s_dir"
     if [ -b "$media" ]; then
         # expansion not needed for block media
-        rm -f "$p2s_dir/first_boot/scripts.d/90_expand_rootfs.sh"
+        rm -f "$p2s_dir/first_boot/scripts.d/boot1/90_expand_rootfs.sh"
     fi
     echo "$(script_phase2_setup_sh $acct_uid $acct_pass)\n" > "$p2s_dir/phase2_setup.sh"
 
@@ -109,24 +107,23 @@ main() {
     fi
 
     umount "$mountpt"
-    # only cleanup mount point if we made it
-    [ -z "$mountpt_del" ] && rm -rf "$mountpt"
+    rm -rf "$mountpt"
 
-    echo '\ninstalling u-boot...'
+    echo '\n\033[0;36minstalling u-boot...\033[0m'
     dd bs=4K seek=8 if="$uboot_rksd" of="$media" conv=notrunc
     dd bs=4K seek=2048 if="$uboot_itb" of="$media" conv=notrunc
     sync
 
     if [ -b "$media" ]; then
-        echo '\nmedia is now ready'
+        echo '\n\033[0;36mmedia is now ready\033[0m'
     else
-        echo '\ncompressing image file...'
+        echo '\n\033[0;36mcompressing image file...\033[0m'
         pv "$media" | xz -z > "$media.xz"
         rm -f "$media"
 
-        echo '\ncompressed image is now ready'
-        echo '\ncopy image to media:'
-        echo "  sudo sh -c 'xzcat $media.xz > /dev/sdX && sync'"
+        echo '\n\033[0;36mcompressed image is now ready\033[0m'
+        echo '\n\033[0;36mcopy image to media:\033[0m'
+        echo "  \033[0;36msudo sh -c 'xzcat $media.xz > /dev/sdX && sync'\033[0m"
     fi
     echo
 }
@@ -237,8 +234,8 @@ file_apt_sources() {
 	deb http://deb.debian.org/debian/ $deb_dist main
 	deb-src http://deb.debian.org/debian/ $deb_dist main
 
-	deb http://security.debian.org/debian-security/ $deb_dist/updates main
-	deb-src http://security.debian.org/debian-security/ $deb_dist/updates main
+	#deb http://security.debian.org/debian-security/ $deb_dist/updates main
+	#deb-src http://security.debian.org/debian-security/ $deb_dist/updates main
 
 	deb http://deb.debian.org/debian/ $deb_dist-updates main
 	deb-src http://deb.debian.org/debian/ $deb_dist-updates main
@@ -265,30 +262,14 @@ file_locale_cfg() {
 	EOF
 }
 
-file_network_interfaces() {
-    cat <<-EOF
-	# loopback network interface
-	auto lo
-	iface lo inet loopback
-
-	# lan network interface
-	auto lan0
-	iface lan0 inet static
-	    address 192.168.1.1/24
-	    broadcast 192.168.1.255
-
-	# wan network interface
-	auto wan0
-	iface wan0 inet dhcp
-	EOF
-}
-
 script_phase2_setup_sh() {
     local uid=${1-debian}
     local pass=${2-debian}
 
     cat <<-EOF
 	#!/bin/sh
+
+	set -e
 
 	apt update
 	apt -y full-upgrade
@@ -299,10 +280,9 @@ script_phase2_setup_sh() {
 	echo "$uid ALL=(ALL) NOPASSWD: ALL" > /etc/sudoers.d/$uid
 	chmod 600 /etc/sudoers.d/$uid
 
-	mv /tmp/phase2_setup/first_boot/first_boot.service /etc/systemd/system
 	mv /tmp/phase2_setup/first_boot /root
-        sed -i "s/1624888888/$(date +%s)/" /etc/systemd/system/first_boot.service
-	systemctl enable first_boot.service
+	mv /root/first_boot/first_boot_cfg.service /etc/systemd/system
+	systemctl enable first_boot_cfg.service
 
 	exit
 	EOF

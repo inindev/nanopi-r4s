@@ -1,0 +1,17 @@
+[Unit]
+Description=First-boot one-time configuration scripts
+DefaultDependencies=no
+Conflicts=shutdown.target
+After=network.target ssh.service
+Before=shutdown.target
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/bin/sh /root/first_boot/scripts.sh
+StandardOutput=journal
+StandardError=journal
+TimeoutSec=120s
+
+[Install]
+WantedBy=multi-user.target

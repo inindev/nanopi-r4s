@@ -1,9 +1,11 @@
 #!/bin/sh
 
+set -e
+
 cd /root/first_boot
 
-if [ -d scripts.d ]; then
-    for s in scripts.d/*.sh; do
+if [ -d scripts.d/active ]; then
+    for s in scripts.d/active/*.sh; do
         if [ -r $s ]; then
             . $s
         fi
