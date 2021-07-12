@@ -23,10 +23,11 @@ main() {
     check_installed 'debootstrap' 'u-boot-tools' 'pv' 'wget'
 
     echo '\n\033[0;36mdownloading files...\033[0m'
-    local rtfw=$(download 'cache' 'https://mirrors.edge.kernel.org/pub/linux/kernel/firmware/linux-firmware-20210511.tar.xz')
-    local dtb=$(download 'cache' 'https://github.com/inindev/nanopi-r4s/raw/release/dtb/rk3399-nanopi-r4s.dtb')
-    local uboot_rksd=$(download 'cache' 'https://github.com/inindev/nanopi-r4s/raw/release/uboot/rksd_loader.img')
-    local uboot_itb=$(download 'cache' 'https://github.com/inindev/nanopi-r4s/raw/release/uboot/u-boot.itb')
+    local cache="cache.$deb_dist"
+    local rtfw=$(download "$cache" 'https://mirrors.edge.kernel.org/pub/linux/kernel/firmware/linux-firmware-20210511.tar.xz')
+    local dtb=$(download "$cache" 'https://github.com/inindev/nanopi-r4s/raw/release/dtb/rk3399-nanopi-r4s.dtb')
+    local uboot_rksd=$(download "$cache" 'https://github.com/inindev/nanopi-r4s/raw/release/uboot/rksd_loader.img')
+    local uboot_itb=$(download "$cache" 'https://github.com/inindev/nanopi-r4s/raw/release/uboot/u-boot.itb')
 
     if [ ! -b "$media" ]; then
         echo '\n\033[0;36mcreating image file...\033[0m'
@@ -38,10 +39,10 @@ main() {
     mount_media "$media" "$mountpt"
 
     # do not write the cache to the image
-    mkdir -p 'cache/var/cache' 'cache/var/lib/apt/lists'
+    mkdir -p "$cache/var/cache" "$cache/var/lib/apt/lists"
     mkdir -p "$mountpt/var/cache" "$mountpt/var/lib/apt/lists"
-    mount -o bind 'cache/var/cache' "$mountpt/var/cache"
-    mount -o bind 'cache/var/lib/apt/lists' "$mountpt/var/lib/apt/lists"
+    mount -o bind "$cache/var/cache" "$mountpt/var/cache"
+    mount -o bind "$cache/var/lib/apt/lists" "$mountpt/var/lib/apt/lists"
 
     echo '\033[0;36minstalling root filesystem...\033[0m'
     debootstrap --arch arm64 "$deb_dist" "$mountpt" 'https://deb.debian.org/debian/'
