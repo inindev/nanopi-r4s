@@ -20,6 +20,9 @@ main() {
     local acct_pass='debian'
     local disable_ipv6='true'
 
+    # no compression if disabled or block media
+    local nocomp=$([ "nocomp" = "$1" -o -b "$media" ] && echo 'true')
+
     check_installed 'debootstrap' 'u-boot-tools' 'pv' 'wget'
 
     echo '\n\033[0;36mdownloading files...\033[0m'
@@ -100,7 +103,7 @@ main() {
 
     rm -rf "$p2s_dir"
 
-    if [ ! -b "$media" ]; then
+    if [ -z "$nocomp" ]; then
         # reduce entropy in free space to enhance compression
         cat /dev/zero > "$mountpt/tmp/zero.bin" 2> /dev/null || true
         sync
@@ -115,9 +118,7 @@ main() {
     dd bs=4K seek=2048 if="$uboot_itb" of="$media" conv=notrunc
     sync
 
-    if [ -b "$media" ]; then
-        echo '\n\033[0;36mmedia is now ready\033[0m'
-    else
+    if [ -z "$nocomp" ]; then
         echo '\n\033[0;36mcompressing image file...\033[0m'
         pv "$media" | xz -z > "$media.xz"
         rm -f "$media"
@@ -125,6 +126,14 @@ main() {
         echo '\n\033[0;36mcompressed image is now ready\033[0m'
         echo '\n\033[0;36mcopy image to media:\033[0m'
         echo "  \033[0;36msudo sh -c 'xzcat $media.xz > /dev/sdX && sync'\033[0m"
+    else
+        if [ -b "$media" ]; then
+            echo '\n\033[0;36mmedia is now ready\033[0m'
+        else
+            echo '\n\033[0;36mimage is now ready\033[0m'
+            echo '\n\033[0;36mcopy image to media:\033[0m'
+            echo "  \033[0;36msudo sh -c 'cat $media > /dev/sdX && sync'\033[0m"
+        fi
     fi
     echo
 }
@@ -330,6 +339,6 @@ script_mkscr_sh() {
 if [ "0" != "$(id -u)" ]; then
     echo 'this script must be run as root'
 else
-    main
+    main $1
 fi
 
