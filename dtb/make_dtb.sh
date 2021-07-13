@@ -18,21 +18,21 @@ if [ ! -f "$nanodts.ori" ]; then
     cp "$nanodts" "$nanodts.ori"
 fi
 
-if ! cat "$nanodts" | grep -q 'r8169-100:00:link'; then
+if ! grep -q 'r8169-100:00:link' "$nanodts"; then
     sed -i 's/label = "green:lan";/&\n\t\t\tlinux,default-trigger = "r8169-100:00:link";/' "$nanodts"
 fi
-if ! cat "$nanodts" | grep -q 'stmmac-0:01:link'; then
+if ! grep -q 'stmmac-0:01:link' "$nanodts"; then
     sed -i 's/label = "green:wan";/&\n\t\t\tlinux,default-trigger = "stmmac-0:01:link";/' "$nanodts"
 fi
 
 epgpios='ep-gpios = <\&gpio2 RK_PA4 GPIO_ACTIVE_HIGH>;'
-if ! cat "$nanodts" | grep -q "$epgpios"; then
+if ! grep -q "$epgpios" "$nanodts"; then
     sed -i "s/^\&pcie0 {/&\n\t$epgpios/" "$nanodts"
 fi
 
 # see https://patchwork.kernel.org/project/linux-rockchip/patch/20210607081727.4723-1-cnsztl@gmail.com
-if ! cat "$nanodts" | grep -q '&i2c2'; then
-sed -i 's/\&i2c4 {/\&i2c2 {\
+if ! grep -q '&i2c2' "$nanodts"; then
+    sed -i 's/\&i2c4 {/\&i2c2 {\
 	eeprom@51 {\
 		compatible = "microchip,24c02", "atmel,24c02";\
 		reg = <0x51>;\
@@ -41,6 +41,11 @@ sed -i 's/\&i2c4 {/\&i2c2 {\
 		read-only;\
 	};\
 };\n\n&/' "$nanodts"
+fi
+
+# see https://patchwork.kernel.org/project/linux-rockchip/patch/20210705150327.86189-2-peterwillcn@gmail.com
+if grep -q '^&vcc3v3_sys {$' "$nanodts"; then
+    sed -i '/^&vcc3v3_sys {$/,/};/d' "$nanodts"
 fi
 
 if [ "$1" = 'links' ]; then
