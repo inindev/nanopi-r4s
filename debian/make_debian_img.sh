@@ -140,8 +140,9 @@ main() {
 make_image_file() {
     local filename=$1
     rm -f "$filename"
-    local size="$(echo "$filename" | sed -rn 's/.*mmc_([[:digit:]]+[m|g])\.img$/\1/p' | sed -e 's/g/ << 14/' -e 's/m/ << 4/')"
-    dd bs=64K count=$(($size)) if=/dev/zero of="$filename"
+    local size="$(echo "$filename" | sed -rn 's/.*mmc_([[:digit:]]+[m|g])\.img$/\1/p')"
+    local bytes="$(echo "$size" | sed -e 's/g/ << 30/' -e 's/m/ << 20/')"
+    pv -s $(($bytes)) /dev/zero | dd bs=64K count=$(($bytes >> 16)) of="$filename"
 }
 
 # partition & create ext4 filesystem
