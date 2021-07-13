@@ -43,6 +43,21 @@ if ! grep -q '&i2c2' "$nanodts"; then
 };\n\n&/' "$nanodts"
 fi
 
+# see https://patchwork.kernel.org/project/linux-rockchip/patch/20210705010424.72269-1-peterwillcn@gmail.com
+if ! grep -q 'stdout-path = "serial2:1500000n8";' "$nanodts"; then
+    sed -i 's/compatible = "friendlyarm,nanopi-r4s", "rockchip,rk3399";/&\n\
+	chosen {\
+		stdout-path = "serial2:1500000n8";\
+	};/' "$nanodts"
+fi
+
+# see https://patchwork.kernel.org/project/linux-rockchip/patch/20210705010424.72269-1-peterwillcn@gmail.com
+if ! grep -q '^&sdmmc {$' "$nanodts"; then
+    sed -i 's/\&u2phy0_host {/\&sdmmc {\
+	host-index-min = <1>;\
+};\n\n&/' "$nanodts"
+fi
+
 # see https://patchwork.kernel.org/project/linux-rockchip/patch/20210705150327.86189-2-peterwillcn@gmail.com
 if grep -q '^&vcc3v3_sys {$' "$nanodts"; then
     sed -i '/^&vcc3v3_sys {$/,/};/d' "$nanodts"
