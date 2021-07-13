@@ -7,6 +7,7 @@ set -e
 #   1: missing utility
 #   2: download failure
 #   3: image mount failure
+#   9: superuser required
 #
 
 main() {
@@ -25,7 +26,7 @@ main() {
 
     check_installed 'debootstrap' 'u-boot-tools' 'pv' 'wget'
 
-    echo '\n\033[0;36mdownloading files...\033[0m'
+    echo "\n${h1}downloading files...${rst}"
     local cache="cache.$deb_dist"
     local rtfw=$(download "$cache" 'https://mirrors.edge.kernel.org/pub/linux/kernel/firmware/linux-firmware-20210511.tar.xz')
     local dtb=$(download "$cache" 'https://github.com/inindev/nanopi-r4s/raw/release/dtb/rk3399-nanopi-r4s.dtb')
@@ -33,11 +34,11 @@ main() {
     local uboot_itb=$(download "$cache" 'https://github.com/inindev/nanopi-r4s/raw/release/uboot/u-boot.itb')
 
     if [ ! -b "$media" ]; then
-        echo '\n\033[0;36mcreating image file...\033[0m'
+        echo "\n${h1}creating image file...${rst}"
         make_image_file "$media"
     fi
 
-    echo '\033[0;36m\nformatting media...\033[0m'
+    echo "\n${h1}formatting media...${rst}"
     format_media "$media"
     mount_media "$media" "$mountpt"
 
@@ -47,10 +48,10 @@ main() {
     mount -o bind "$cache/var/cache" "$mountpt/var/cache"
     mount -o bind "$cache/var/lib/apt/lists" "$mountpt/var/lib/apt/lists"
 
-    echo '\033[0;36minstalling root filesystem...\033[0m'
+    echo "${h1}installing root filesystem...${rst}"
     debootstrap --arch arm64 "$deb_dist" "$mountpt" 'https://deb.debian.org/debian/'
 
-    echo '\n\033[0;36mconfiguring...\033[0m'
+    echo "\n${h1}configuring...${rst}"
     echo 'link_in_boot = 1' > "$mountpt/etc/kernel-img.conf"
     echo "$(file_apt_sources $deb_dist)\n" > "$mountpt/etc/apt/sources.list"
     echo "$(file_locale_cfg)\n" > "$mountpt/etc/default/locale"
@@ -66,7 +67,7 @@ main() {
     sed -i "s/# alias ls='ls \$LS_OPTIONS'/alias ls='ls \$LS_OPTIONS'/" "$mountpt/root/.bashrc"
     sed -i "s/# alias ll='ls \$LS_OPTIONS -l'/alias ll='ls \$LS_OPTIONS -l'/" "$mountpt/root/.bashrc"
 
-    echo '\n\033[0;36mconfiguring boot files...\033[0m'
+    echo "\n${h1}configuring boot files...${rst}"
     echo "$(script_boot_txt $disable_ipv6)\n" > "$mountpt/boot/boot.txt"
     mkimage -A arm -O linux -T script -C none -n 'u-boot boot script' -d "$mountpt/boot/boot.txt" "$mountpt/boot/boot.scr"
     echo "$(script_mkscr_sh)\n" > "$mountpt/boot/mkscr.sh"
@@ -74,12 +75,12 @@ main() {
     install -m 644 "$dtb" "$mountpt/boot"
     ln -s $(basename "$dtb") "$mountpt/boot/dtb"
 
-    echo '\n\033[0;36minstalling realtek firmware...\033[0m'
+    echo "\n${h1}installing realtek firmware...${rst}"
     local rtfwn=$(basename "$rtfw")
     mkdir -p "$mountpt/lib/firmware"
     tar -C "$mountpt/lib/firmware" --strip-components=1 -xJvf "$rtfw" ${rtfwn%%.*}/rtl_nic
 
-    echo '\n\033[0;36mphase 2: chroot setup...\033[0m'
+    echo "\n${h1}phase 2: chroot setup...${rst}"
     local p2s_dir="$mountpt/tmp/phase2_setup"
     mkdir "$p2s_dir"
     cp -r first_boot "$p2s_dir"
@@ -113,27 +114,25 @@ main() {
     umount "$mountpt"
     rm -rf "$mountpt"
 
-    echo '\n\033[0;36minstalling u-boot...\033[0m'
+    echo "\n${h1}installing u-boot...${rst}"
     dd bs=4K seek=8 if="$uboot_rksd" of="$media" conv=notrunc
     dd bs=4K seek=2048 if="$uboot_itb" of="$media" conv=notrunc
     sync
 
     if [ -z "$nocomp" ]; then
-        echo '\n\033[0;36mcompressing image file...\033[0m'
+        echo "\n${h1}compressing image file...${rst}"
         pv "$media" | xz -z > "$media.xz"
         rm -f "$media"
 
-        echo '\n\033[0;36mcompressed image is now ready\033[0m'
-        echo '\n\033[0;36mcopy image to media:\033[0m'
-        echo "  \033[0;36msudo sh -c 'xzcat $media.xz > /dev/sdX && sync'\033[0m"
+        echo "\n${cya}compressed image is now ready${rst}"
+        echo "\n${cya}copy image to media:${rst}"
+        echo "  ${cya}sudo sh -c 'xzcat $media.xz > /dev/sdX && sync'${rst}"
+    elif [ -b "$media" ]; then
+        echo "\n${cya}media is now ready${rst}"
     else
-        if [ -b "$media" ]; then
-            echo '\n\033[0;36mmedia is now ready\033[0m'
-        else
-            echo '\n\033[0;36mimage is now ready\033[0m'
-            echo '\n\033[0;36mcopy image to media:\033[0m'
-            echo "  \033[0;36msudo sh -c 'cat $media > /dev/sdX && sync'\033[0m"
-        fi
+        echo "\n${cya}image is now ready${rst}"
+        echo "\n${cya}copy image to media:${rst}"
+        echo "  ${cya}sudo sh -c 'cat $media > /dev/sdX && sync'${rst}"
     fi
     echo
 }
@@ -229,7 +228,7 @@ check_installed() {
     done
 
     if [ ! -z "$todo" ]; then
-        echo "this script requires the following packages:\033[0;33m$todo\033[0m\n"
+        echo "this script requires the following packages:${bld}${yel}$todo${rst}\n"
         exit 1
     fi
 }
@@ -338,7 +337,18 @@ script_mkscr_sh() {
 
 if [ "0" != "$(id -u)" ]; then
     echo 'this script must be run as root'
-else
-    main $1
+    exit 9
 fi
 
+rst='\033[m'
+bld='\033[1m'
+red='\033[31m'
+grn='\033[32m'
+yel='\033[33m'
+blu='\033[34m'
+mag='\033[35m'
+cya='\033[36m'
+h1="${blu}==>${rst} ${bld}"
+
+main $1
+unset rst bld red grn yel blu mag cya h1
