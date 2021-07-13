@@ -51,7 +51,7 @@ main() {
     echo "${h1}installing root filesystem...${rst}"
     debootstrap --arch arm64 "$deb_dist" "$mountpt" 'https://deb.debian.org/debian/'
 
-    echo "\n${h1}configuring...${rst}"
+    echo "\n${h1}configuring files...${rst}"
     echo 'link_in_boot = 1' > "$mountpt/etc/kernel-img.conf"
     echo "$(file_apt_sources $deb_dist)\n" > "$mountpt/etc/apt/sources.list"
     echo "$(file_locale_cfg)\n" > "$mountpt/etc/default/locale"
@@ -67,7 +67,6 @@ main() {
     sed -i "s/# alias ls='ls \$LS_OPTIONS'/alias ls='ls \$LS_OPTIONS'/" "$mountpt/root/.bashrc"
     sed -i "s/# alias ll='ls \$LS_OPTIONS -l'/alias ll='ls \$LS_OPTIONS -l'/" "$mountpt/root/.bashrc"
 
-    echo "\n${h1}configuring boot files...${rst}"
     echo "$(script_boot_txt $disable_ipv6)\n" > "$mountpt/boot/boot.txt"
     mkimage -A arm -O linux -T script -C none -n 'u-boot boot script' -d "$mountpt/boot/boot.txt" "$mountpt/boot/boot.scr"
     echo "$(script_mkscr_sh)\n" > "$mountpt/boot/mkscr.sh"
@@ -326,7 +325,7 @@ script_mkscr_sh() {
 	#!/bin/sh
 
 	if [ ! -x /usr/bin/mkimage ]; then
-	    echo 'mkimage not found, please install uboot-tools:'
+	    echo 'mkimage not found, please install uboot tools:'
 	    echo '  sudo apt -y install u-boot-tools'
 	    exit 1
 	fi
@@ -336,7 +335,7 @@ script_mkscr_sh() {
 }
 
 
-if [ "0" != "$(id -u)" ]; then
+if [ 0 -ne $(id -u) ]; then
     echo 'this script must be run as root'
     exit 9
 fi
@@ -353,3 +352,4 @@ h1="${blu}==>${rst} ${bld}"
 
 main $1
 unset rst bld red grn yel blu mag cya h1
+
