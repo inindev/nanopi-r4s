@@ -22,7 +22,7 @@ main() {
     local disable_ipv6='true'
 
     # no compression if disabled or block media
-    local nocomp=$([ "nocomp" = "$1" -o -b "$media" ] && echo 'true')
+    local compress=$([ "nocomp" = "$1" -o -b "$media" ] && echo false || echo true)
 
     check_installed 'debootstrap' 'u-boot-tools' 'pv' 'wget'
 
@@ -81,7 +81,7 @@ main() {
 
     echo "\n${h1}phase 2: chroot setup...${rst}"
     local p2s_dir="$mountpt/tmp/phase2_setup"
-    mkdir "$p2s_dir"
+    mkdir -p "$p2s_dir"
     cp -r first_boot "$p2s_dir"
     if [ -b "$media" ]; then
         # expansion not needed for block media
@@ -103,7 +103,7 @@ main() {
 
     rm -rf "$p2s_dir"
 
-    if [ -z "$nocomp" ]; then
+    if $compress; then
         # reduce entropy in free space to enhance compression
         cat /dev/zero > "$mountpt/tmp/zero.bin" 2> /dev/null || true
         sync
@@ -118,7 +118,7 @@ main() {
     dd bs=4K seek=2048 if="$uboot_itb" of="$media" conv=notrunc
     sync
 
-    if [ -z "$nocomp" ]; then
+    if $compress; then
         echo "\n${h1}compressing image file...${rst}"
         pv "$media" | xz -z > "$media.xz"
         rm -f "$media"
@@ -137,7 +137,7 @@ main() {
 }
 
 make_image_file() {
-    local filename=$1
+    local filename="$1"
     rm -f "$filename"
     local size="$(echo "$filename" | sed -rn 's/.*mmc_([[:digit:]]+[m|g])\.img$/\1/p')"
     local bytes="$(echo "$size" | sed -e 's/g/ << 30/' -e 's/m/ << 20/')"
@@ -146,7 +146,7 @@ make_image_file() {
 
 # partition & create ext4 filesystem
 format_media() {
-    local media=$1
+    local media="$1"
 
     # partition with gpt
     cat <<-EOF | sfdisk "$media"
@@ -161,25 +161,26 @@ format_media() {
     if [ -b "$media" ]; then
         local part1="/dev/$(lsblk -no kname "$media" | grep '.*1$')"
         mkfs.ext4 "$part1"
+        sync
     else
-        local lodev=$(losetup -f)
+        local lodev="$(losetup -f)"
         losetup -P "$lodev" "$media"
         sync
         mkfs.ext4 "${lodev}p1"
         sync
         losetup -d "$lodev"
+        sync
     fi
-    sync
 }
 
 # mount filesystem
 mount_media() {
-    local media=$1
-    local mountpoint=$2
+    local media="$1"
+    local mountpoint="$2"
 
     if [ -d "$mountpoint" ]; then
         if [ -d "$mountpoint/lost+found" ]; then
-            umount "$mountpoint" 2> /dev/null | true
+            umount "$mountpoint" 2> /dev/null || true
         fi
     else
         mkdir -p "$mountpoint"
@@ -200,22 +201,15 @@ mount_media() {
 
 # download / return file from cache
 download() {
-    local cache=$1
-    local url=$2
+    local cache="$1"
+    local url="$2"
 
-    if [ ! -d "$cache" ]; then
-        mkdir -p "$cache"
-    fi
+    [ -d "$cache" ] || mkdir -p "$cache"
 
     local filename=$(basename "$url")
     local filepath="$cache/$filename"
-    if [ ! -f "$filepath" ]; then
-        wget "$url" -P "$cache"
-    fi
-
-    if [ ! -f "$filepath" ]; then
-        exit 2
-    fi
+    [ -f "$filepath" ] || wget "$url" -P "$cache"
+    [ -f "$filepath" ] || exit 2
 
     echo "$filepath"
 }
@@ -234,7 +228,7 @@ check_installed() {
 }
 
 file_apt_sources() {
-    local deb_dist=$1
+    local deb_dist="$1"
 
     cat <<-EOF
 	# For information about how to configure apt package sources,
@@ -243,8 +237,8 @@ file_apt_sources() {
 	deb http://deb.debian.org/debian/ $deb_dist main
 	deb-src http://deb.debian.org/debian/ $deb_dist main
 
-	#deb http://security.debian.org/debian-security/ $deb_dist/updates main
-	#deb-src http://security.debian.org/debian-security/ $deb_dist/updates main
+	deb http://security.debian.org/debian-security/ $deb_dist/updates main
+	deb-src http://security.debian.org/debian-security/ $deb_dist/updates main
 
 	deb http://deb.debian.org/debian/ $deb_dist-updates main
 	deb-src http://deb.debian.org/debian/ $deb_dist-updates main
@@ -272,8 +266,8 @@ file_locale_cfg() {
 }
 
 script_phase2_setup_sh() {
-    local uid=${1-debian}
-    local pass=${2-debian}
+    local uid="${1-debian}"
+    local pass="${2-debian}"
 
     cat <<-EOF
 	#!/bin/sh
@@ -285,7 +279,7 @@ script_phase2_setup_sh() {
 	apt -y install linux-image-arm64 linux-headers-arm64
 	apt -y install openssh-server sudo wget unzip u-boot-tools
 
-	useradd -m $uid -p \$(echo $pass | openssl passwd -6 -stdin) -s /bin/bash
+	useradd -m "$uid" -p \$(echo "$pass" | openssl passwd -6 -stdin) -s /bin/bash
 	echo "$uid ALL=(ALL) NOPASSWD: ALL" > /etc/sudoers.d/$uid
 	chmod 600 /etc/sudoers.d/$uid
 
@@ -350,6 +344,6 @@ mag='\033[35m'
 cya='\033[36m'
 h1="${blu}==>${rst} ${bld}"
 
-main $1
+main "$1"
 unset rst bld red grn yel blu mag cya h1
 
