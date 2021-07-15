@@ -25,11 +25,6 @@ if ! grep -q 'stmmac-0:01:link' "$nanodts"; then
     sed -i 's/label = "green:wan";/&\n\t\t\tlinux,default-trigger = "stmmac-0:01:link";/' "$nanodts"
 fi
 
-epgpios='ep-gpios = <\&gpio2 RK_PA4 GPIO_ACTIVE_HIGH>;'
-if ! grep -q "$epgpios" "$nanodts"; then
-    sed -i "s/^\&pcie0 {/&\n\t$epgpios/" "$nanodts"
-fi
-
 # see https://patchwork.kernel.org/project/linux-rockchip/patch/20210607081727.4723-1-cnsztl@gmail.com
 if ! grep -q '&i2c2' "$nanodts"; then
     sed -i 's/\&i2c4 {/\&i2c2 {\
