@@ -229,6 +229,7 @@ check_installed() {
 
 file_apt_sources() {
     local deb_dist="$1"
+    local deb_dist_security="$deb_dist$([ 'bullseye' = "$deb_dist" ] && echo '-security')"
 
     cat <<-EOF
 	# For information about how to configure apt package sources,
@@ -237,8 +238,8 @@ file_apt_sources() {
 	deb http://deb.debian.org/debian/ $deb_dist main
 	deb-src http://deb.debian.org/debian/ $deb_dist main
 
-	deb http://security.debian.org/debian-security/ $deb_dist/updates main
-	deb-src http://security.debian.org/debian-security/ $deb_dist/updates main
+	deb http://security.debian.org/debian-security/ $deb_dist_security/updates main
+	deb-src http://security.debian.org/debian-security/ $deb_dist_security/updates main
 
 	deb http://deb.debian.org/debian/ $deb_dist-updates main
 	deb-src http://deb.debian.org/debian/ $deb_dist-updates main
