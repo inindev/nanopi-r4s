@@ -6,6 +6,8 @@ set -e
 # kernel.org linux version
 lv='5.13.2'
 
+if [ -z "$1" ]; then
+
 if [ ! -d "linux-$lv" ]; then
     if [ ! -f "linux-$lv.tar.xz" ]; then
         wget "https://cdn.kernel.org/pub/linux/kernel/v5.x/linux-$lv.tar.xz"
@@ -58,14 +60,25 @@ if grep -q '^&vcc3v3_sys {$' "$nanodts"; then
     sed -i '/^&vcc3v3_sys {$/,/};/d' "$nanodts"
 fi
 
-if [ "$1" = 'links' ]; then
+fi # -z $1
+
+case "$1" in
+'clean')
+    rm -f rk3399*
+    rm -rf "linux-$lv"
+    echo 'clean complete'
+    ;;
+'links')
     ln -s "linux-$lv/arch/arm64/boot/dts/rockchip/rk3399-nanopi-r4s.dts"
     ln -s "linux-$lv/arch/arm64/boot/dts/rockchip/rk3399-nanopi4.dtsi"
     ln -s "linux-$lv/arch/arm64/boot/dts/rockchip/rk3399.dtsi"
     ln -s "linux-$lv/arch/arm64/boot/dts/rockchip/rk3399-opp.dtsi"
-else
+    echo 'links created'
+    ;;
+*)
     # build
     gcc -I "linux-$lv/include" -E -nostdinc -undef -D__DTS__ -x assembler-with-cpp -o rk3399-nanopi-r4s-top.dts "linux-$lv/arch/arm64/boot/dts/rockchip/rk3399-nanopi-r4s.dts"
     dtc -O dtb -o rk3399-nanopi-r4s.dtb rk3399-nanopi-r4s-top.dts
-fi
+    ;;
+esac
 
