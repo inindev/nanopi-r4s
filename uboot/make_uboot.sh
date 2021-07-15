@@ -2,6 +2,15 @@
 
 set -e
 
+if [ 'clean' = "$1" ]; then
+    rm -f rksd_loader.img u-boot.itb
+    git -C u-boot clean -f
+    git -C u-boot checkout master
+    git -C u-boot branch -D uboot-2021.04
+    git -C u-boot pull --ff-only
+    exit 0
+fi
+
 if [ ! -d u-boot ]; then
     git clone https://github.com/u-boot/u-boot.git
     git -C u-boot fetch --tags
@@ -18,7 +27,7 @@ if ! git -C u-boot branch | grep -q uboot-2021.04; then
     git -C u-boot am ../patches/0006-vcc3v3-uses-wrong-vcc5-supply-voltage.patch
     # optional boot from usb
     #git -C u-boot am ../patches/0007-optional-boot-from-usb.patch
-elif [ "uboot-2021.04" != "$(git -C u-boot branch | sed -n -e 's/^\* \(.*\)/\1/p')" ]; then
+elif [ 'uboot-2021.04' != "$(git -C u-boot branch | sed -n -e 's/^\* \(.*\)/\1/p')" ]; then
     git -C u-boot checkout uboot-2021.04
 fi
 
