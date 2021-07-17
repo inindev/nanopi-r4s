@@ -6,30 +6,28 @@ set -e
 # kernel.org linux version
 lv='5.13.2'
 
-case "$1" in
-'clean')
+if [ ! -f "linux-$lv.tar.xz" ]; then
+    wget "https://cdn.kernel.org/pub/linux/kernel/v5.x/linux-$lv.tar.xz"
+fi
+
+if [ 'clean' = "$1" ]; then
     rm -f rk3399*
     rm -rf "linux-$lv"
-    echo 'clean complete'
+    echo '\nclean complete'
     exit 0
-    ;;
-'links')
+fi
+
+if [ ! -d "linux-$lv" ]; then
+    tar xJvf "linux-$lv.tar.xz" "linux-$lv/include" "linux-$lv/arch/arm64/boot/dts/rockchip"
+fi
+
+if [ 'links' = "$1" ]; then
     ln -s "linux-$lv/arch/arm64/boot/dts/rockchip/rk3399-nanopi-r4s.dts"
     ln -s "linux-$lv/arch/arm64/boot/dts/rockchip/rk3399-nanopi4.dtsi"
     ln -s "linux-$lv/arch/arm64/boot/dts/rockchip/rk3399.dtsi"
     ln -s "linux-$lv/arch/arm64/boot/dts/rockchip/rk3399-opp.dtsi"
-    echo 'links created'
+    echo '\nlinks created'
     exit 0
-    ;;
-*)
-    ;;
-esac
-
-if [ ! -d "linux-$lv" ]; then
-    if [ ! -f "linux-$lv.tar.xz" ]; then
-        wget "https://cdn.kernel.org/pub/linux/kernel/v5.x/linux-$lv.tar.xz"
-    fi
-    tar xJvf "linux-$lv.tar.xz" "linux-$lv/include" "linux-$lv/arch/arm64/boot/dts/rockchip"
 fi
 
 nanodts="linux-$lv/arch/arm64/boot/dts/rockchip/rk3399-nanopi-r4s.dts"
@@ -37,6 +35,7 @@ if [ ! -f "$nanodts.ori" ]; then
     cp "$nanodts" "$nanodts.ori"
 fi
 
+# lan & wan leds
 if ! grep -q 'r8169-100:00:link' "$nanodts"; then
     sed -i 's/label = "green:lan";/&\n\t\t\tlinux,default-trigger = "r8169-100:00:link";/' "$nanodts"
 fi
@@ -73,4 +72,6 @@ fi
 # build
 gcc -I "linux-$lv/include" -E -nostdinc -undef -D__DTS__ -x assembler-with-cpp -o rk3399-nanopi-r4s-top.dts "linux-$lv/arch/arm64/boot/dts/rockchip/rk3399-nanopi-r4s.dts"
 dtc -O dtb -o rk3399-nanopi-r4s.dtb rk3399-nanopi-r4s-top.dts
+
+echo '\nbuild complete: rk3399-nanopi-r4s.dtb'
 
