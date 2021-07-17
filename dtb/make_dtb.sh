@@ -13,12 +13,12 @@ fi
 if [ 'clean' = "$1" ]; then
     rm -f rk3399*
     rm -rf "linux-$lv"
-    echo '\nclean complete'
+    echo '\nclean complete\n'
     exit 0
 fi
 
 if [ ! -d "linux-$lv" ]; then
-    tar xJvf "linux-$lv.tar.xz" "linux-$lv/include" "linux-$lv/arch/arm64/boot/dts/rockchip"
+    tar xJvf "linux-$lv.tar.xz" "linux-$lv/include/dt-bindings" "linux-$lv/include/uapi" "linux-$lv/arch/arm64/boot/dts/rockchip"
 fi
 
 if [ 'links' = "$1" ]; then
@@ -26,7 +26,7 @@ if [ 'links' = "$1" ]; then
     ln -s "linux-$lv/arch/arm64/boot/dts/rockchip/rk3399-nanopi4.dtsi"
     ln -s "linux-$lv/arch/arm64/boot/dts/rockchip/rk3399.dtsi"
     ln -s "linux-$lv/arch/arm64/boot/dts/rockchip/rk3399-opp.dtsi"
-    echo '\nlinks created'
+    echo '\nlinks created\n'
     exit 0
 fi
 
@@ -73,5 +73,5 @@ fi
 gcc -I "linux-$lv/include" -E -nostdinc -undef -D__DTS__ -x assembler-with-cpp -o rk3399-nanopi-r4s-top.dts "linux-$lv/arch/arm64/boot/dts/rockchip/rk3399-nanopi-r4s.dts"
 dtc -O dtb -o rk3399-nanopi-r4s.dtb rk3399-nanopi-r4s-top.dts
 
-echo '\nbuild complete: rk3399-nanopi-r4s.dtb'
+echo '\nbuild complete: rk3399-nanopi-r4s.dtb\n'
 
