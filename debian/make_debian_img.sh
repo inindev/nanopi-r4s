@@ -24,7 +24,7 @@ main() {
     # no compression if disabled or block media
     local compress=$([ "nocomp" = "$1" -o -b "$media" ] && echo false || echo true)
 
-    check_installed 'debootstrap' 'u-boot-tools' 'pv' 'wget'
+    check_installed 'debootstrap' 'u-boot-tools' 'pv' 'wget' 'xz-utils'
 
     echo "\n${h1}downloading files...${rst}"
     local cache="cache.$deb_dist"
