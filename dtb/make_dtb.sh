@@ -4,7 +4,7 @@ set -e
 
 # prerequisites: build-essential device-tree-compiler
 # kernel.org linux version
-lv='5.13.6'
+lv='5.13.8'
 
 if [ ! -f "linux-$lv.tar.xz" ]; then
     wget "https://cdn.kernel.org/pub/linux/kernel/v5.x/linux-$lv.tar.xz"
