@@ -2,12 +2,12 @@
 linux for the nanopi r4s
 
 ---
-### debian buster setup
+### debian bullseye setup
 <br/>
 
 **1. download image:**
 ```
-wget https://media.githubusercontent.com/media/inindev/nanopi-r4s/release/debian/buster.img.xz
+wget https://github.com/inindev/nanopi-r4s/raw/release/debian/bullseye.img.xz
 ```
 
 <br/>
@@ -30,7 +30,7 @@ brw-rw---- 1 root disk 8, 0 Feb 14  2019 /dev/sda
 
 **3. in the case above, substitute 'a' for 'X' in the command below (for /dev/sda):**
 ```
-sudo sh -c 'xzcat buster.img.xz > /dev/sdX && sync'
+sudo sh -c 'xzcat bullseye.img.xz > /dev/sdX && sync'
 ```
 
 #### when the micro sd has finished imaging, use it to boot the nanopi r4s and finish setup
