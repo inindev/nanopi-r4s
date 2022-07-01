@@ -218,11 +218,12 @@ download() {
 check_installed() {
     local todo
     for item in "$@"; do
-        dpkg -l "$item" >/dev/null 2>&1 || todo="$todo $item"
+        dpkg -l "$item" 2>/dev/null | grep -q "ii  $item" || todo="$todo $item"
     done
 
     if [ ! -z "$todo" ]; then
-        echo "this script requires the following packages:${bld}${yel}$todo${rst}\n"
+        echo "this script requires the following packages:${bld}${yel}$todo${rst}"
+        echo "   run: ${bld}${grn}apt update && apt -y install$todo${rst}\n"
         exit 1
     fi
 }
