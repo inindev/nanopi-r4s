@@ -278,7 +278,7 @@ script_phase2_setup_sh() {
 
 	apt update
 	apt -y full-upgrade
-	apt -y install linux-image-arm64 linux-headers-arm64
+	apt -y install linux-image-arm64 linux-headers-arm64 systemd-timesyncd
 	apt -y install openssh-server sudo wget unzip u-boot-tools
 
 	useradd -m "$uid" -p \$(echo "$pass" | openssl passwd -6 -stdin) -s /bin/bash
