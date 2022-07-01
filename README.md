@@ -3,6 +3,9 @@ linux for the nanopi r4s
 
 ---
 ### debian bullseye setup
+
+#### <i>Note: This script should be run from a 64 bit arm device such as a raspberry pi4.</i>
+
 <br/>
 
 **1. download image:**
