@@ -69,6 +69,19 @@ if grep -q '^&vcc3v3_sys {$' "$nanodts"; then
     sed -i '/^&vcc3v3_sys {$/,/};/d' "$nanodts"
 fi
 
+rk3399dtsi="linux-$lv/arch/arm64/boot/dts/rockchip/rk3399.dtsi"
+if [ ! -f "$rk3399dtsi.ori" ]; then
+    cp "$rk3399dtsi" "$rk3399dtsi.ori"
+fi
+
+# back-out change ec3028e7c83ed03f9cd10c0373d955b489ca5ed6 on 10/07/2021
+# this change produces the error: rockchip-pinctrl pinctrl: bank[0-4] is not valid
+sed -i 's/gpio0: gpio@ff720000 {/gpio0: gpio0@ff720000 {/' "$rk3399dtsi"
+sed -i 's/gpio1: gpio@ff730000 {/gpio1: gpio1@ff730000 {/' "$rk3399dtsi"
+sed -i 's/gpio2: gpio@ff780000 {/gpio2: gpio2@ff780000 {/' "$rk3399dtsi"
+sed -i 's/gpio3: gpio@ff788000 {/gpio3: gpio3@ff788000 {/' "$rk3399dtsi"
+sed -i 's/gpio4: gpio@ff790000 {/gpio4: gpio4@ff790000 {/' "$rk3399dtsi"
+
 # build
 gcc -I "linux-$lv/include" -E -nostdinc -undef -D__DTS__ -x assembler-with-cpp -o rk3399-nanopi-r4s-top.dts "linux-$lv/arch/arm64/boot/dts/rockchip/rk3399-nanopi-r4s.dts"
 dtc -O dtb -o rk3399-nanopi-r4s.dtb rk3399-nanopi-r4s-top.dts
