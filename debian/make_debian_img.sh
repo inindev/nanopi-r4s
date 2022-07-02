@@ -28,7 +28,7 @@ main() {
 
     echo "\n${h1}downloading files...${rst}"
     local cache="cache.$deb_dist"
-    local rtfw=$(download "$cache" 'https://mirrors.edge.kernel.org/pub/linux/kernel/firmware/linux-firmware-20210919.tar.xz')
+    local rtfw=$(download "$cache" 'https://mirrors.edge.kernel.org/pub/linux/kernel/firmware/linux-firmware-20220610.tar.xz')
     local dtb=$(download "$cache" 'https://github.com/inindev/nanopi-r4s/raw/release/dtb/rk3399-nanopi-r4s.dtb')
     local uboot_rksd=$(download "$cache" 'https://github.com/inindev/nanopi-r4s/raw/release/uboot/rksd_loader.img')
     local uboot_itb=$(download "$cache" 'https://github.com/inindev/nanopi-r4s/raw/release/uboot/u-boot.itb')
