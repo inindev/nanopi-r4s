@@ -1,0 +1,33 @@
+From 2a17f88851898aee8483d89a69b1f104dbf881f4 Mon Sep 17 00:00:00 2001
+From: John Clark <inindev@gmail.com>
+Date: Mon, 4 Jul 2022 21:46:31 -0400
+Subject: [PATCH] optional: skip mmc boot (usb boot)
+
+---
+ include/configs/rockchip-common.h | 10 ++--------
+ 1 file changed, 2 insertions(+), 8 deletions(-)
+
+diff --git a/include/configs/rockchip-common.h b/include/configs/rockchip-common.h
+index ba7061a287..90422b9f2f 100644
+--- a/include/configs/rockchip-common.h
++++ b/include/configs/rockchip-common.h
+@@ -14,14 +14,8 @@
+ 
+ #ifndef CONFIG_SPL_BUILD
+ 
+-/* First try to boot from SD (index 1), then eMMC (index 0) */
+-#if CONFIG_IS_ENABLED(CMD_MMC)
+-	#define BOOT_TARGET_MMC(func) \
+-		func(MMC, mmc, 1) \
+-		func(MMC, mmc, 0)
+-#else
+-	#define BOOT_TARGET_MMC(func)
+-#endif
++/* always skip mmc boot (boot to usb) */
++#define BOOT_TARGET_MMC(func)
+ 
+ #if CONFIG_IS_ENABLED(CMD_NVME)
+ 	#define BOOT_TARGET_NVME(func) func(NVME, nvme, 0)
+-- 
+2.30.2
+

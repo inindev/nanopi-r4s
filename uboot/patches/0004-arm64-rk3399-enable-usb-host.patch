@@ -1,17 +1,18 @@
-From ddd7ba91ff804e9b4185b0c4125bac28312c474c Mon Sep 17 00:00:00 2001
+From 2cc2961db36361e8c34756036401ea6f1dd9c35d Mon Sep 17 00:00:00 2001
 From: John Clark <inindev@gmail.com>
-Date: Sat, 3 Jul 2021 23:52:37 +0000
-Subject: [PATCH] arm64: rk3399: enable usb host
+Date: Mon, 4 Jul 2022 22:23:48 -0400
+Subject: [PATCH 1/2] arm64: rk3399: enable usb host
 
+Signed-off-by: John Clark <inindev@gmail.com>
 ---
  configs/nanopi-r4s-rk3399_defconfig | 4 ++++
  1 file changed, 4 insertions(+)
 
 diff --git a/configs/nanopi-r4s-rk3399_defconfig b/configs/nanopi-r4s-rk3399_defconfig
-index da9ca1690e..dac6a78fe7 100644
+index 7369ea3de3..ac57afe9f1 100644
 --- a/configs/nanopi-r4s-rk3399_defconfig
 +++ b/configs/nanopi-r4s-rk3399_defconfig
-@@ -36,11 +36,14 @@ CONFIG_MMC_SDHCI_ROCKCHIP=y
+@@ -38,11 +38,14 @@ CONFIG_MMC_SDHCI_ROCKCHIP=y
  CONFIG_DM_ETH=y
  CONFIG_ETH_DESIGNWARE=y
  CONFIG_GMAC_ROCKCHIP=y
@@ -26,7 +27,7 @@ index da9ca1690e..dac6a78fe7 100644
  CONFIG_BAUDRATE=1500000
  CONFIG_DEBUG_UART_SHIFT=2
  CONFIG_SYSRESET=y
-@@ -49,6 +52,7 @@ CONFIG_USB_XHCI_HCD=y
+@@ -51,6 +54,7 @@ CONFIG_USB_XHCI_HCD=y
  CONFIG_USB_XHCI_DWC3=y
  CONFIG_USB_EHCI_HCD=y
  CONFIG_USB_EHCI_GENERIC=y
@@ -35,5 +36,5 @@ index da9ca1690e..dac6a78fe7 100644
  CONFIG_USB_HOST_ETHER=y
  CONFIG_USB_ETHER_ASIX=y
 -- 
-2.20.1
+2.30.2
 

@@ -6,7 +6,7 @@ if [ 'clean' = "$1" ]; then
     rm -f rksd_loader.img u-boot.itb
     git -C u-boot clean -f
     git -C u-boot checkout master
-    git -C u-boot branch -D uboot-2021.04
+    git -C u-boot branch -D uboot-2022.04
     git -C u-boot pull --ff-only
     exit 0
 fi
@@ -16,19 +16,16 @@ if [ ! -d u-boot ]; then
     git -C u-boot fetch --tags
 fi
 
-if ! git -C u-boot branch | grep -q uboot-2021.04; then
-    git -C u-boot checkout -b uboot-2021.04 v2021.04
-    git -C u-boot cherry-pick b69b9f3f54732c303939eb748aad97cd4cf60168
-    git -C u-boot am ../patches/0001-remove-video-support.patch
-    git -C u-boot am ../patches/0002-make-mmc1-default.patch
-    git -C u-boot am ../patches/0003-ethaddr-eth1addr-from-eeprom.patch
-    git -C u-boot am ../patches/0004-pcie_dw_rockchip-compilation-errors.patch
-    git -C u-boot am ../patches/0005-enable-usb-host.patch
-    git -C u-boot am ../patches/0006-vcc3v3-uses-wrong-vcc5-supply-voltage.patch
+if ! git -C u-boot branch | grep -q uboot-2022.04; then
+    git -C u-boot checkout -b uboot-2022.04 v2022.04
+    git -C u-boot am ../patches/0001-.gitignore-ignore-tools-boot-build-artifact.patch
+    git -C u-boot am ../patches/0002-arm64-rk3399-remove-video-support.patch
+    git -C u-boot am ../patches/0003-arm64-rk3399-set-ethaddr-and-eth1addr-from-eeprom.patch
+    git -C u-boot am ../patches/0004-arm64-rk3399-enable-usb-host.patch
     # optional boot from usb
-    #git -C u-boot am ../patches/0007-optional-boot-from-usb.patch
-elif [ 'uboot-2021.04' != "$(git -C u-boot branch | sed -n -e 's/^\* \(.*\)/\1/p')" ]; then
-    git -C u-boot checkout uboot-2021.04
+#    git -C u-boot am ../patches/0005-optional-skip-mmc-boot-usb-boot.patch
+elif [ 'uboot-2022.04' != "$(git -C u-boot branch | sed -n -e 's/^\* \(.*\)/\1/p')" ]; then
+    git -C u-boot checkout uboot-2022.04
 fi
 
 if [ ! -f u-boot/rk3399_bl31.elf ]; then

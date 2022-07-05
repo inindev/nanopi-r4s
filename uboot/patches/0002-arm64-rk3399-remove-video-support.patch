@@ -1,0 +1,35 @@
+From def8d57099ad5ca3ddd4f063e34424c1a4a3b821 Mon Sep 17 00:00:00 2001
+From: John Clark <inindev@gmail.com>
+Date: Mon, 4 Jul 2022 15:28:04 -0400
+Subject: [PATCH 2/3] arm64: rk3399: remove video support
+
+Signed-off-by: John Clark <inindev@gmail.com>
+---
+ configs/nanopi-r4s-rk3399_defconfig | 5 +----
+ 1 file changed, 1 insertion(+), 4 deletions(-)
+
+diff --git a/configs/nanopi-r4s-rk3399_defconfig b/configs/nanopi-r4s-rk3399_defconfig
+index 7d176ce28e..d769d9c79e 100644
+--- a/configs/nanopi-r4s-rk3399_defconfig
++++ b/configs/nanopi-r4s-rk3399_defconfig
+@@ -12,6 +12,7 @@ CONFIG_DEBUG_UART_CLOCK=24000000
+ CONFIG_DEBUG_UART=y
+ CONFIG_SYS_LOAD_ADDR=0x800800
+ CONFIG_DEFAULT_FDT_FILE="rockchip/rk3399-nanopi-r4s.dtb"
++CONFIG_CONSOLE_MUX=y
+ CONFIG_DISPLAY_BOARDINFO_LATE=y
+ # CONFIG_SPL_RAW_IMAGE_SUPPORT is not set
+ CONFIG_SPL_STACK_R=y
+@@ -56,9 +57,5 @@ CONFIG_USB_ETHER_ASIX88179=y
+ CONFIG_USB_ETHER_MCS7830=y
+ CONFIG_USB_ETHER_RTL8152=y
+ CONFIG_USB_ETHER_SMSC95XX=y
+-CONFIG_DM_VIDEO=y
+-CONFIG_DISPLAY=y
+-CONFIG_VIDEO_ROCKCHIP=y
+-CONFIG_DISPLAY_ROCKCHIP_HDMI=y
+ CONFIG_SPL_TINY_MEMSET=y
+ CONFIG_ERRNO_STR=y
+-- 
+2.30.2
+
