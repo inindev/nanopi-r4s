@@ -64,11 +64,6 @@ if ! grep -q 'stdout-path = "serial2:1500000n8";' "$nanodts"; then
 	};/' "$nanodts"
 fi
 
-# see https://patchwork.kernel.org/project/linux-rockchip/patch/20210705150327.86189-2-peterwillcn@gmail.com/
-if grep -q '^&vcc3v3_sys {$' "$nanodts"; then
-    sed -i '/^&vcc3v3_sys {$/,/};/d' "$nanodts"
-fi
-
 rk3399dtsi="linux-$lv/arch/arm64/boot/dts/rockchip/rk3399.dtsi"
 if [ ! -f "$rk3399dtsi.ori" ]; then
     cp "$rk3399dtsi" "$rk3399dtsi.ori"
