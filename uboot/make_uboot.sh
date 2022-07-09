@@ -19,11 +19,10 @@ fi
 if ! git -C u-boot branch | grep -q uboot-2022.04; then
     git -C u-boot checkout -b uboot-2022.04 v2022.04
     git -C u-boot am ../patches/0001-.gitignore-ignore-tools-boot-build-artifact.patch
-    git -C u-boot am ../patches/0002-arm64-rk3399-remove-video-support.patch
+    git -C u-boot am ../patches/0002-arm64-rk3399-enable-usb-disable-video.patch
     git -C u-boot am ../patches/0003-arm64-rk3399-set-ethaddr-and-eth1addr-from-eeprom.patch
-    git -C u-boot am ../patches/0004-arm64-rk3399-enable-usb-host.patch
     # optional boot from usb
-#    git -C u-boot am ../patches/0005-optional-skip-mmc-boot-usb-boot.patch
+#    git -C u-boot am ../patches/0004-optional-skip-mmc-boot-usb-boot.patch
 elif [ 'uboot-2022.04' != "$(git -C u-boot branch | sed -n -e 's/^\* \(.*\)/\1/p')" ]; then
     git -C u-boot checkout uboot-2022.04
 fi
