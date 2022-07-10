@@ -8,7 +8,7 @@ debian arm64 linux for the nanopi r4s
 
 **1. download image:**
 ```
-wget https://github.com/inindev/nanopi-r4s/releases/download/v11.3/bullseye.img.xz
+wget https://github.com/inindev/nanopi-r4s/releases/download/v11.4/bullseye.img.xz
 ```
 
 <br/>
@@ -99,8 +99,8 @@ usb emmc (nand flash) drive.
 
 **1. download images:**
 ```
-wget https://github.com/inindev/nanopi-r4s/releases/download/v11.3/usb_rksd_loader.img
-wget https://github.com/inindev/nanopi-r4s/releases/download/v11.3/usb_u-boot.itb
+wget https://github.com/inindev/nanopi-r4s/releases/download/v11.4/usb_rksd_loader.img
+wget https://github.com/inindev/nanopi-r4s/releases/download/v11.4/usb_u-boot.itb
 ```
 
 <br/>
