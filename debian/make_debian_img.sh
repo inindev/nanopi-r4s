@@ -29,9 +29,9 @@ main() {
     echo "\n${h1}downloading files...${rst}"
     local cache="cache.$deb_dist"
     local rtfw=$(download "$cache" 'https://mirrors.edge.kernel.org/pub/linux/kernel/firmware/linux-firmware-20220610.tar.xz')
-    local dtb=$(download "$cache" 'https://github.com/inindev/nanopi-r4s/releases/download/v11.3/rk3399-nanopi-r4s.dtb')
-    local uboot_rksd=$(download "$cache" 'https://github.com/inindev/nanopi-r4s/releases/download/v11.3/rksd_loader.img')
-    local uboot_itb=$(download "$cache" 'https://github.com/inindev/nanopi-r4s/releases/download/v11.3/u-boot.itb')
+    local dtb=$(download "$cache" 'https://github.com/inindev/nanopi-r4s/releases/download/v11.4/rk3399-nanopi-r4s.dtb')
+    local uboot_rksd=$(download "$cache" 'https://github.com/inindev/nanopi-r4s/releases/download/v11.4/rksd_loader.img')
+    local uboot_itb=$(download "$cache" 'https://github.com/inindev/nanopi-r4s/releases/download/v11.4/u-boot.itb')
 
     if [ ! -b "$media" ]; then
         echo "\n${h1}creating image file...${rst}"
