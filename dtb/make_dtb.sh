@@ -22,10 +22,10 @@ if [ ! -d "linux-$lv" ]; then
 fi
 
 if [ 'links' = "$1" ]; then
-    ln -s "linux-$lv/arch/arm64/boot/dts/rockchip/rk3399-nanopi-r4s.dts"
-    ln -s "linux-$lv/arch/arm64/boot/dts/rockchip/rk3399-nanopi4.dtsi"
-    ln -s "linux-$lv/arch/arm64/boot/dts/rockchip/rk3399.dtsi"
-    ln -s "linux-$lv/arch/arm64/boot/dts/rockchip/rk3399-opp.dtsi"
+    ln -sf "linux-$lv/arch/arm64/boot/dts/rockchip/rk3399-nanopi-r4s.dts"
+    ln -sf "linux-$lv/arch/arm64/boot/dts/rockchip/rk3399-nanopi4.dtsi"
+    ln -sf "linux-$lv/arch/arm64/boot/dts/rockchip/rk3399.dtsi"
+    ln -sf "linux-$lv/arch/arm64/boot/dts/rockchip/rk3399-opp.dtsi"
     echo '\nlinks created\n'
     exit 0
 fi
