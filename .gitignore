@@ -3,6 +3,7 @@
 debian/cache*
 debian/*.img
 debian/*.img.xz
+debian/rootfs
 dtb/linux-*
 dtb/*.dts
 dtb/*.dtsi
