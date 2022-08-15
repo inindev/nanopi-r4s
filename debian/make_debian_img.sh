@@ -68,7 +68,7 @@ main() {
     sed -i "s/# alias ll='ls \$LS_OPTIONS -l'/alias ll='ls \$LS_OPTIONS -l'/" "$mountpt/root/.bashrc"
 
     echo "$(script_boot_txt $disable_ipv6)\n" > "$mountpt/boot/boot.txt"
-    mkimage -A arm -O linux -T script -C none -n 'u-boot boot script' -d "$mountpt/boot/boot.txt" "$mountpt/boot/boot.scr"
+    mkimage -A arm64 -O linux -T script -C none -n 'u-boot boot script' -d "$mountpt/boot/boot.txt" "$mountpt/boot/boot.scr"
     echo "$(script_mkscr_sh)\n" > "$mountpt/boot/mkscr.sh"
     chmod 754 "$mountpt/boot/mkscr.sh"
     install -m 644 "$dtb" "$mountpt/boot"
@@ -243,7 +243,6 @@ file_apt_sources() {
 
 	deb http://deb.debian.org/debian/ $deb_dist-updates main
 	deb-src http://deb.debian.org/debian/ $deb_dist-updates main
-
 	EOF
 }
 
@@ -282,8 +281,7 @@ script_phase2_setup_sh() {
 	apt -y install openssh-server sudo wget unzip u-boot-tools
 
 	useradd -m "$uid" -p \$(echo "$pass" | openssl passwd -6 -stdin) -s /bin/bash
-	echo "$uid ALL=(ALL) NOPASSWD: ALL" > /etc/sudoers.d/$uid
-	chmod 600 /etc/sudoers.d/$uid
+	(umask 377 && echo "$uid ALL=(ALL) NOPASSWD: ALL" > /etc/sudoers.d/$uid)
 
 	mv /tmp/phase2_setup/first_boot /root
 	mv /root/first_boot/first_boot_cfg.service /etc/systemd/system
@@ -326,7 +324,7 @@ script_mkscr_sh() {
 	    exit 1
 	fi
 
-	mkimage -A arm -O linux -T script -C none -n 'u-boot boot script' -d boot.txt boot.scr
+	mkimage -A arm64 -O linux -T script -C none -n 'u-boot boot script' -d boot.txt boot.scr
 	EOF
 }
 
