@@ -71,8 +71,8 @@ sudo chsh -s /usr/sbin/nologin debian
 ```
 
 ```
-sudo deluser debian
-sudo rm -rf /home/debian
+sudo deluser --remove-home debian
+sudo rm /etc/sudoers.d/debian
 ```
 
 <br/>
