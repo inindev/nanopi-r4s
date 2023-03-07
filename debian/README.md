@@ -1,9 +1,8 @@
-#### <i>Note: This script should be run from a 64 bit arm device such as a raspberry pi4.</i>
+#### <i>Note: This script should be run from an arm64 device such as a raspberry pi4.</i>
 
 <br/>
 
 ```
-sudo su
-sh make_debian_img.sh
+sudo sh make_debian_img.sh
 ```
 
