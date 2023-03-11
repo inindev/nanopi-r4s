@@ -18,8 +18,8 @@ main() {
     local hostname='deb-arm64'
     local acct_uid='debian'
     local acct_pass='debian'
-    local enterprise_dtb='true'
-    local disable_ipv6='true'
+    local enterprise_dtb=true
+    local disable_ipv6=true
     local extra_pkgs='pciutils, sudo, wget, u-boot-tools, xxd, xz-utils, zip, unzip'
 
     # no compression if disabled or block media
@@ -35,7 +35,7 @@ main() {
     # device tree & uboot
     local dtb=$(download "$cache" 'https://github.com/inindev/nanopi-r4s/releases/download/v12-rc1/rk3399-nanopi-r4s.dtb')
 #    local dtb='../dtb/rk3399-nanopi-r4s.dtb'
-    local dtb=$(download "$cache" 'https://github.com/inindev/nanopi-r4s/releases/download/v12-rc1/rk3399-nanopi-r4s-enterprise.dtb')
+    local dtbe=$(download "$cache" 'https://github.com/inindev/nanopi-r4s/releases/download/v12-rc1/rk3399-nanopi-r4s-enterprise.dtb')
 #    local dtbe='../dtb/rk3399-nanopi-r4s-enterprise.dtb'
 
     local uboot_spl=$(download "$cache" 'https://github.com/inindev/nanopi-r4s/releases/download/v12-rc1/idbloader.img')
