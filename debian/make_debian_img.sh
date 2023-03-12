@@ -383,14 +383,14 @@ script_boot_txt() {
     cat <<-EOF
 	# after modifying, run ./mkscr.sh
 
-	part uuid \${devtype} \${devnum}:\${bootpart} uuid
+	part uuid \${devtype} \${devnum}:\${distro_bootpart} uuid
 	setenv bootargs console=ttyS2,1500000 root=PARTUUID=\${uuid} rw rootwait$no_ipv6 earlycon=uart8250,mmio32,0xff1a0000
 
-	if load \${devtype} \${devnum}:\${bootpart} \${kernel_addr_r} /boot/vmlinuz; then
-	    if load \${devtype} \${devnum}:\${bootpart} \${fdt_addr_r} /boot/dtb; then
+	if load \${devtype} \${devnum}:\${distro_bootpart} \${kernel_addr_r} /boot/vmlinuz; then
+	    if load \${devtype} \${devnum}:\${distro_bootpart} \${fdt_addr_r} /boot/dtb; then
 	        fdt addr \${fdt_addr_r}
 	        fdt resize
-	        if load \${devtype} \${devnum}:\${bootpart} \${ramdisk_addr_r} /boot/initrd.img; then
+	        if load \${devtype} \${devnum}:\${distro_bootpart} \${ramdisk_addr_r} /boot/initrd.img; then
 	            booti \${kernel_addr_r} \${ramdisk_addr_r}:\${filesize} \${fdt_addr_r};
 	        else
 	            booti \${kernel_addr_r} - \${fdt_addr_r};
