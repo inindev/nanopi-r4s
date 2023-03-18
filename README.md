@@ -6,22 +6,22 @@ stock debian arm64 linux for the nanopi r4s
 
 <br/>
 
-**1. download image:**
+**1. download image**
 ```
 wget https://github.com/inindev/nanopi-r4s/releases/download/v12-rc1/nanopi-r4s_bookworm-rc1.img.xz
 ```
 
 <br/>
 
-**2. determine the location of the target micro sd card:**
+**2. determine the location of the target micro sd card**
 
- * before plugging-in device:
+ * before plugging-in device
 ```
 ls -l /dev/sd*
 ls: cannot access '/dev/sd*': No such file or directory
 ```
 
- * after plugging-in device:
+ * after plugging-in device
 ```
 ls -l /dev/sd*
 brw-rw---- 1 root disk 8, 0 Mar  7 03:14 /dev/sda
@@ -30,7 +30,7 @@ brw-rw---- 1 root disk 8, 0 Mar  7 03:14 /dev/sda
 
 <br/>
 
-**3. in the case above, substitute 'a' for 'X' in the command below (for /dev/sda):**
+**3. in the case above, substitute 'a' for 'X' in the command below (for /dev/sda)**
 ```
 sudo sh -c 'xzcat bookworm.img.xz > /dev/sdX && sync'
 ```
@@ -39,15 +39,15 @@ sudo sh -c 'xzcat bookworm.img.xz > /dev/sdX && sync'
 
 <br/>
 
-**4. login:**
+**4. login account**
 ```
-user: debian@192.168.1.xxx
+user: debian
 pass: debian
 ```
 
 <br/>
 
-**5. take updates:**
+**5. take updates**
 ```
 sudo apt update
 sudo apt upgrade
@@ -55,7 +55,7 @@ sudo apt upgrade
 
 <br/>
 
-**6. create account & login as new user:**
+**6. create account & login as new user**
 ```
 sudo adduser youruserid
 echo '<youruserid> ALL=(ALL) NOPASSWD: ALL' | sudo tee /etc/sudoers.d/<youruserid>
@@ -64,7 +64,7 @@ sudo chmod 440 /etc/sudoers.d/<youruserid>
 
 <br/>
 
-**7. lockout and/or delete debian account:**
+**7. lockout and/or delete debian account**
 ```
 sudo passwd -l debian
 sudo chsh -s /usr/sbin/nologin debian
@@ -77,7 +77,7 @@ sudo rm /etc/sudoers.d/debian
 
 <br/>
 
-**8. change hostname (optional):**
+**8. change hostname (optional)**
 ```
 sudo nano /etc/hostname
 sudo nano /etc/hosts
@@ -97,7 +97,7 @@ usb emmc (nand flash) drive.
 
 <br/>
 
-**1. download images:**
+**1. download images**
 ```
 wget https://github.com/inindev/nanopi-r4s/releases/download/v12-rc1/usb_idbloader.img
 wget https://github.com/inindev/nanopi-r4s/releases/download/v12-rc1/usb_u-boot.itb
@@ -105,15 +105,15 @@ wget https://github.com/inindev/nanopi-r4s/releases/download/v12-rc1/usb_u-boot.
 
 <br/>
 
-**2. determine the location of the target micro sd card:**
+**2. determine the location of the target micro sd card**
 
- * before plugging-in device:
+ * before plugging-in device
 ```
 ls -l /dev/sd*
 ls: cannot access '/dev/sd*': No such file or directory
 ```
 
- * after plugging-in device:
+ * after plugging-in device
 ```
 ls -l /dev/sd*
 brw-rw---- 1 root disk 8, 0 Jul  2 16:33 /dev/sda
@@ -122,7 +122,7 @@ brw-rw---- 1 root disk 8, 0 Jul  2 16:33 /dev/sda
 
 <br/>
 
-**3. in the case above, substitute 'a' for 'X' in the command below (for /dev/sda):**
+**3. in the case above, substitute 'a' for 'X' in the command below (for /dev/sda)**
 ```
 cat /dev/zero | sudo tee /dev/sdX
 sudo dd bs=4K seek=8 if=usb_rksd_loader.img of=/dev/sdX conv=notrunc
@@ -141,11 +141,11 @@ sudo dd bs=4K seek=2048 if=usb_u-boot.itb of=/dev/sdX conv=notrunc,fsync
 
 The build script builds native arm64 binaries and thus needs to be run from an arm64 device such as a raspberry pi4 running 
 a 64 bit arm linux. The initial build of this project used a debian arm64 raspberry pi4, but now uses a nanopi r4s running 
-pure debian bookworm arm64.
+stock debian bookworm arm64.
 
 <br/>
 
-**1. clone the repo:**
+**1. clone the repo**
 ```
 git clone https://github.com/inindev/nanopi-r4s.git
 cd nanopi-r4s
