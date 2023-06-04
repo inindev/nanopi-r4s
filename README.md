@@ -2,6 +2,10 @@
 debian arm64 linux for the nanopi r4s
 
 ---
+#### Notice: Unmaintained Repository
+This repository is no longer being maintained. An attempt was made to update to debian 12 bookworm (see [bookworm](https://github.com/inindev/nanopi-r4s/tree/bookworm) branch) but the pci lan nic is not loading in linux. This device was always unreliable on reboot and would often need to be power cycled to restart. I recommend looking at the [nanopi r5c or r5s](https://github.com/inindev/nanopi-r5) instead. The [debian bullseye release](https://github.com/inindev/nanopi-r4s/releases/tag/v11.4) here is a functioning load.
+
+---
 ### debian bullseye setup
 
 <br/>
