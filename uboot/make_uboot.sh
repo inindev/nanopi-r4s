@@ -3,12 +3,12 @@
 set -e
 
 main() {
-    local utag='v2023.01'
-    local boot_usb='false'
+    local utag='v2023.04'
     local atf_url='https://github.com/atf-builds/atf/releases/download/v2.8/rk3399_bl31.elf'
     local atf_file=$(basename $atf_url)
 
     if [ '_clean' = "_$1" ]; then
+        rm -f u-boot/simple-bin.fit.*
         make -C u-boot distclean
         git -C u-boot clean -f
         git -C u-boot checkout master
@@ -27,33 +27,24 @@ main() {
 
     if ! git -C u-boot branch | grep -q $utag; then
         git -C u-boot checkout -b $utag $utag
-        git -C u-boot am ../patches/0001-ignore-build-artifacts.patch
-        # optional boot from usb (u-boot on mmc only)
-        if $boot_usb; then
-            git -C u-boot am ../patches/0002-optional-skip-mmc-boot-usb-boot.patch
-        fi
+        for patch in patches/*.patch; do
+            git -C u-boot am "../$patch"
+        done
     elif [ "_$utag" != "_$(git -C u-boot branch | sed -n -e 's/^\* \(.*\)/\1/p')" ]; then
         git -C u-boot checkout $utag
     fi
 
-    if [ ! -f u-boot/$atf_file ]; then
-        wget -cP u-boot $atf_url
-    fi
+    [ -f u-boot/$atf_file ] || wget -cP u-boot $atf_url
 
     # outputs: idbloader.img & u-boot.itb
-    make -C u-boot distclean
-    make -C u-boot nanopi-r4s-rk3399_defconfig
-    make -C u-boot -j$(nproc) BL31=$atf_file
-
-    local target_spl='idbloader.img'
-    local target_itb='u-boot.itb'
-    if $boot_usb; then
-        target_spl="usb_$target_spl"
-        target_itb="usb_$target_itb"
+    rm -f idbloader.img u-boot.itb
+    if [ '_inc' != "_$1" ]; then
+        make -C u-boot distclean
+        make -C u-boot nanopi-r4s-rk3399_defconfig
     fi
-
-    cp u-boot/idbloader.img $target_spl
-    cp u-boot/u-boot.itb $target_itb
+    make -C u-boot -j$(nproc) BL31=$atf_file
+    ln -sfv u-boot/idbloader.img
+    ln -sfv u-boot/u-boot.itb
 
     echo "\n${cya}idbloader and u-boot binaries are now ready${rst}"
     echo "\n${cya}copy images to media:${rst}"
@@ -62,7 +53,6 @@ main() {
     echo
 }
 
-# check if utility program is installed
 check_installed() {
     local todo
     for item in "$@"; do

@@ -1,0 +1,32 @@
+From 1ce2021fa3dcf8625dea295b72b6af5eeb6180a2 Mon Sep 17 00:00:00 2001
+From: John Clark <inindev@gmail.com>
+Date: Sun, 4 Jun 2023 10:32:37 -0400
+Subject: [PATCH 1/4] partially revert commit 3891c68: convert to standard boot
+
+Signed-off-by: John Clark <inindev@gmail.com>
+---
+ include/configs/rk3399_common.h | 3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/include/configs/rk3399_common.h b/include/configs/rk3399_common.h
+index 96ba19c659..366459d544 100644
+--- a/include/configs/rk3399_common.h
++++ b/include/configs/rk3399_common.h
+@@ -47,11 +47,14 @@
+ #define ROCKCHIP_DEVICE_SETTINGS
+ #endif
+ 
++#include <config_distro_bootcmd.h>
++#include <environment/distro/sf.h>
+ #define CFG_EXTRA_ENV_SETTINGS \
+ 	ENV_MEM_LAYOUT_SETTINGS \
+ 	"fdtfile=" CONFIG_DEFAULT_FDT_FILE "\0" \
+ 	"partitions=" PARTS_DEFAULT \
+ 	ROCKCHIP_DEVICE_SETTINGS \
++	BOOTENV \
+ 	"boot_targets=" BOOT_TARGETS "\0"
+ 
+ #endif
+-- 
+2.39.2
+
