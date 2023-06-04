@@ -2,16 +2,19 @@
 
 set -e
 
+# script exit codes:
+#   1: missing utility
+#   5: invalid file hash
+
 main() {
-    local lv='6.2.2'
-    local rkpath="linux-$lv/arch/arm64/boot/dts/rockchip"
+    local linux='https://cdn.kernel.org/pub/linux/kernel/v6.x/linux-6.3.5.tar.xz'
+    local lxsha='f5cd478c3d8b908ab606afd1e95a4f8f77e7186b4a82829251d6e6aaafff825e'
 
-    if [ ! -f "linux-$lv.tar.xz" ]; then
-        wget "https://cdn.kernel.org/pub/linux/kernel/v6.x/linux-$lv.tar.xz"
-    fi
+    local lf=$(basename $linux)
+    local lv=$(echo $lf | sed -nE 's/linux-(.*)\.tar\..z/\1/p')
 
-    if [ 'clean' = "$1" ]; then
-        rm -f rk3399*
+    if [ '_clean' = "_$1" ]; then
+        rm -f *.dt*
         rm -rf "linux-$lv"
         echo '\nclean complete\n'
         exit 0
@@ -19,25 +22,31 @@ main() {
 
     check_installed 'device-tree-compiler' 'gcc' 'wget' 'xz-utils'
 
-    if [ ! -d "linux-$lv" ]; then
-        tar xJvf "linux-$lv.tar.xz" "linux-$lv/include/dt-bindings" "linux-$lv/include/uapi" "$rkpath"
+    [ -f $lf ] || wget $linux
+
+    if [ _$lxsha != _$(sha256sum $lf | cut -c1-64) ]; then
+        echo "invalid hash for linux source file: $lf"
+        exit 5
     fi
 
-    if [ 'links' = "$1" ]; then
-        ln -sf "$rkpath/rk3399-nanopi-r4s-enterprise.dts"
-        ln -sf "$rkpath/rk3399-nanopi-r4s.dts"
-        ln -sf "$rkpath/rk3399-nanopi4.dtsi"
-        ln -sf "$rkpath/rk3399.dtsi"
-        ln -sf "$rkpath/rk3399-opp.dtsi"
+    local rkpath=linux-$lv/arch/arm64/boot/dts/rockchip
+    if [ ! -d "linux-$lv" ]; then
+        tar xavf $lf linux-$lv/include/dt-bindings linux-$lv/include/uapi $rkpath
+    fi
+
+    if [ _links = _$1 ]; then
+        ln -sfv "$rkpath/rk3399-nanopi-r4s-enterprise.dts"
+        ln -sfv "$rkpath/rk3399-nanopi-r4s.dts"
+        ln -sfv "$rkpath/rk3399-nanopi4.dtsi"
+        ln -sfv "$rkpath/rk3399.dtsi"
+        ln -sfv "$rkpath/rk3399-opp.dtsi"
         echo '\nlinks created\n'
         exit 0
     fi
 
     for dt in "rk3399-nanopi-r4s" "rk3399-nanopi-r4s-enterprise"; do
-        nanodts="$rkpath/${dt}.dts"
-        if [ ! -f "$nanodts.ori" ]; then
-            cp "$nanodts" "$nanodts.ori"
-        fi
+        local nanodts="$rkpath/${dt}.dts"
+        [ -f "$nanodts.ori" ] || cp "$nanodts" "$nanodts.ori"
 
         # lan & wan leds
         if ! grep -q 'r8169-100:00:link' "$nanodts"; then
@@ -48,13 +57,12 @@ main() {
         fi
 
         # build
-        gcc -I "linux-$lv/include" -E -nostdinc -undef -D__DTS__ -x assembler-with-cpp -o ${dt}-top.dts "$nanodts"
-        dtc -O dtb -o ${dt}.dtb ${dt}-top.dts
-        echo "\n${cya}success: ${dt}.dtb${rst}\n"
+        gcc -I linux-$lv/include -E -nostdinc -undef -D__DTS__ -x assembler-with-cpp -o ${dt}-top.dts "$nanodts"
+        dtc -@ -I dts -O dtb -o ${dt}.dtb ${dt}-top.dts
+        echo "\n${cya}device tree ready: ${dt}.dtb${rst}\n"
     done
 }
 
-# check if utility program is installed
 check_installed() {
     local todo
     for item in "$@"; do
